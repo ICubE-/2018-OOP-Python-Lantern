@@ -20,7 +20,7 @@
 {점수 선택과 채팅을 위한 인터페이스 구현, 게임 인원 간 네트워킹, 게임 로직 구현, 그룹채팅 구현}
 
 ## 7. 구현에 필요한 라이브러리나 기술
-{pygame, threading, socket, networking, PyQt5, sys, operator...}
+{pygame, threading, socket, networking, PyQt5, sys...}
 
 
 ## 8. **분업 계획**
