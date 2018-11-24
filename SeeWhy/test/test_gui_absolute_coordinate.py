@@ -8,6 +8,7 @@ class Example(QWidget):
         self.initUI()
 
     def initUI(self):
+        #absolute coordinate
         lbl1 = QLabel('zetdfjk', self)
         lbl1.move(15,10)
         
