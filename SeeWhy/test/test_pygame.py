@@ -12,6 +12,13 @@ width=40
 height=60
 vel=5
 
+isJump=False
+jumpCount=10
+
+def redrawGameWindow():
+    win.blit(bg,(0,0))
+
+#mainloop
 run = True
 while run:
     pygame.time.delay(10)
@@ -22,17 +29,32 @@ while run:
 
     keys = pygame.key.get_pressed()
 
-    if keys[pygame.K_LEFT]:
+    if keys[pygame.K_LEFT] and x>0:
         x-=vel
 
-    if keys[pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT] and x<500-width-vel:
         x+=vel
 
-    if keys[pygame.K_UP]:
-        y-=vel
+    if not (isJump):
+        if keys[pygame.K_UP] and y>0:
+            y-=vel
 
-    if keys[pygame.K_DOWN]:
-        y+=vel
+        if keys[pygame.K_DOWN] and y<500-height-vel:
+            y+=vel
+
+        if keys[pygame.K_SPACE]:
+            isJump = True
+
+    else:
+        if jumpCount >= -10:
+            neg=1
+            if jumpCount < 0:
+                neg=-1
+            y-=(jumpCount **2)/2*neg
+            jumpCount -=1
+        else:
+            isJump =False
+            jumpCount = 10
 
     win.fill((0,0,0))
     pygame.draw.rect(win, (255,0,0), (x, y, width, height))
