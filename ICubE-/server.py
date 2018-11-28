@@ -4,7 +4,7 @@ import time
 
 server_ip = '127.0.0.1'
 server_port = 51742
-banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/?"
+banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
 
 client_sock_list = []       # 클라이언트 소켓을 저장하는 리스트.
 client_id_dict = {}         # 클라이언트 ID를 키로 하여 튜플 안에 닉네임과 게임방 이름을 저장하는 딕셔너리.
@@ -15,18 +15,35 @@ class RoomThread(threading.Thread):
     def __init__(self, room_name):
         threading.Thread.__init__(self)
         self.room_name = room_name
-        self.member_sock = []
+        self.member_thread = []
+        self.status = 0     # 0: before start, 1: started, 2: finished
 
-    def add_client(self, client_sock):
-        self.member_sock.append(client_sock)
+    def add_client(self, client_thread):
+        self.member_thread.append(client_thread)
 
-    def chat(self, sender_nickname, data):
-        for sock in self.member_sock:
-            sock.send(bytes(sender_nickname + " : ", 'utf-8') + data)
+    def del_client(self, client_thread):
+        if self.member_thread.index(client_thread) == 0:
+            if self.member_thread.__len__() == 1:
+                self.status = 2
+            else:
+                self.member_thread[1].send(bytes("$giveHead", 'utf-8'))
+        self.member_thread.remove(client_thread)
+
+    def chat(self, data):
+        for thread in self.member_thread:
+            thread.client_sock.send(data)
+
+    def game(self):
+        for thread in self.member_thread:
+            thread.client_sock.send(bytes("$gameStarted", 'utf-8'))
+        # WIP
+        for thread in self.member_thread:
+            thread.client_sock.send(bytes("Game Over", 'utf-8'))
+        self.status = 2
+        # WIP
 
     def run(self):
-
-        while True:
+        while self.status != 2:
             pass
 
 
@@ -94,7 +111,11 @@ class ClientThread(threading.Thread):
         global client_id_dict
         global room_dict
 
-        self.send(bytes(repr(tuple(room_dict.keys())), 'utf-8'))
+        available_room_name = []
+        for room in room_dict.values():
+            if room.status == 0:
+                available_room_name.append(room.room_name)
+        self.send(bytes(repr(tuple(available_room_name)), 'utf-8'))
         if self.status == 1:
             return
         data = self.receive()
@@ -103,7 +124,8 @@ class ClientThread(threading.Thread):
         if self.room_name not in room_dict:
             room_dict.setdefault(self.room_name, RoomThread(self.room_name))
             room_dict[self.room_name].start()
-        room_dict[self.room_name].add_client(self.client_sock)
+            self.send(bytes("$giveHead", 'utf-8'))
+        room_dict[self.room_name].add_client(self)
         client_id_dict[self.client_id] = (self.nickname, self.room_name)
 
     def run(self):
@@ -117,9 +139,26 @@ class ClientThread(threading.Thread):
             self.select_room()
             if self.status == 1:
                 return
+            my_room = room_dict[self.room_name]
+            temp = 0
             while True:
                 data = self.receive()
-                room_dict[self.room_name].chat(self.nickname, data)
+                if data.decode('utf-8') == "$gameStart":
+                    my_room.game()
+                elif data.decode('utf-8') == "$gameStarted":
+                    break
+                elif data.decode('utf-8') == "$leave":
+                    my_room.del_client(self)
+                    temp = 1
+                    break
+                else:
+                    my_room.chat(bytes(self.nickname + " : ", 'utf-8') + data)
+            if temp:
+                continue
+            while True:
+                data = self.receive()
+                break
+
 
 
 def connect():
