@@ -5,7 +5,7 @@ class player():
     def __init__(self, nickname):
         self.nickname=nickname
         self.card_list=list(range(1,8))
-        self.time_dict={'자유로운 공강':1, '':1, '편안한 숙면':1}
+        self.time_dict={'자유로운 공강':1, '행복한 취미생활':1, '편안한 숙면':1}
     def put_card(self, card_num):
         try:
             self.card_list.remove(card_num)
