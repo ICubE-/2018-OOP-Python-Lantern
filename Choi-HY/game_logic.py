@@ -33,6 +33,10 @@ class player():
     def init_reward(self):
         self.reward_dict={'자유로운 공강':1, '행복한 취미생활':1, '편안한 숙면':1}
 
+    def return_reward(self):
+        sum=self.reward_dict['자유로운 공강']+self.reward_dict['행복한 취미생활']+self.reward_dict['편안한 숙면']
+        return sum
+
 class time_monster():
     def __init__(self, name, reward, hp):
         self.name=name
@@ -44,14 +48,16 @@ class time_monster():
 
 def get_input(play):
     global player_list
-    tmp=int(input())
+    tmp=int(input('input choice'))
     return [tmp, player_list[play]]
 
-def run_game(num, round_num, task_list):
+def run_game(num, round_num, task_stage):
     for i in range(round_num):
-        tmp=random.randint(1, 5)
-        task_now=task_list[tmp]
-        task_list.pop(tmp)
+        tmp=random.randint(0, 4-i)
+        task_now=task_stage[tmp]
+        task_stage.pop(tmp)
+        print(task_now.name)
+        print(task_now.hp)
 
         input_list=[]
 
@@ -68,7 +74,7 @@ def run_game(num, round_num, task_list):
             for j in range(num):
                 if input_list[i][0]==input_list[j][0] and i!=j:
                     try:
-                        input_list_new.remove(input_list[i])
+                        input_list_new.remove(input_list[i]) ## error 나옵니다
                     except ValueError:
                         print("Error")
 
@@ -103,8 +109,8 @@ def play_again():
     return input('Press Y to restart').lower().startswith('y')
 
 
-num_player=int(input())
-nick_player=tuple(input().split(' '))
+num_player=int(input('insert num'))
+nick_player=tuple(input('names?').split(' '))
 player_list=[]
 
 task_name1=['KYPT', '세종수학축전', '한화사이언스챌린지', '해커톤', '동아리 발표 대회']
@@ -121,8 +127,8 @@ hp_list=[8, 11, 14, 17, 20]
 
 for i in range(3):
     tmp=[]
+    key = random.randint(1, 5)
     for j in range(5):
-        key = random.randint(1, 5)
         tmp.append(time_monster(task_name_all[i][j], reward_list[(key+j)%5], int(hp_list[(key+j)%5]*num_player/5)))
     task_list[task_header[i]]=tmp
 
@@ -141,6 +147,20 @@ while True:
         run_game(num_player, round_num, task_tmp[task_header[i]])
         for j in player_list:
             j.init_time()
+        max_num=0
+        for j in player_list:
+            if max_num<j.return_reward():
+                max_num=j.return_reward()
+        for j in player_list:
+            if max_num==j.return_reward():
+                print('1st '+j.nickname)
+    max_num=-1
+    for j in player_list:
+        if max_num < j.return_reward():
+            max_num = j.return_reward()
+    for j in player_list:
+        if max_num == j.return_reward():
+            print('1st : ' + j.nickname)
     if play_again():
         continue
     else:
