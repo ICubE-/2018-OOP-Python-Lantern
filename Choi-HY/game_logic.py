@@ -70,47 +70,70 @@ def run_game(num, round_num, task_stage):
 
         input_list_new = copy.deepcopy(input_list)
 
-        for i in range(num):
-            for j in range(num):
-                if input_list[i][0]==input_list[j][0] and i!=j:
+        for i in input_list:
+            for j in input_list:
+                if i[0]==j[0] and i!=j:
                     try:
-                        input_list_new.remove(input_list[i]) ## error 나옵니다
+                        input_list.remove(i) ## error 나옵니다
                     except ValueError:
                         print("Error")
 
         tot=0
-        for i in range(num):
-            tot=tot+input_list_new[i][0]
+        for i in input_list:
+            tot=tot+i[0]
 
         if task_now.hp<=tot:
             print("Success")
             for i in range(3):
                 max=-1
-                for j in input_list_new:
+                for j in input_list:
                     if j[0]>max:
                         max=j[0]
-                for j in input_list_new:
+                for j in input_list:
                     if j[0]==max:
                         j[1].get_reward(task_now.reward[i])
-                        input_list_new.remove(j)
+                        input_list.remove(j)
 
         else:
             print("Failed")
             min=99999
-            for i in input_list:
+            for i in input_list_new:
                 if i[0]<min:
                     min=i[0]
-            for i in input_list:
+            for i in input_list_new:
                 if i[0]==min:
                     i[1].take_time()
 
+def best_player():
+    max_num=0
+    for i in player_list:
+        if max_num<i.return_reward():
+            max_num=i.return_reward()
+    for i in player_list:
+        if max_num==i.return_reward():
+            print('1st : '+i.nickname)
 
 def play_again():
     return input('Press Y to restart').lower().startswith('y')
 
 
-num_player=int(input('insert num'))
-nick_player=tuple(input('names?').split(' '))
+num_player=0
+
+while True:
+    num_player=int(input('insert num'))
+    if num_player>5 or num_player<=0-1:
+        print("Invalid Input")
+        continue
+    else:
+        while True:
+            nick_player = tuple(input('names?').split(' '))
+            if len(nick_player) == num_player:
+                break
+            else:
+                print("Invalid Input")
+                continue
+    break
+
 player_list=[]
 
 task_name1=['KYPT', '세종수학축전', '한화사이언스챌린지', '해커톤', '동아리 발표 대회']
@@ -139,6 +162,8 @@ for i in range(num_player):
 stage_num=3
 round_num=5
 
+
+
 while True:
     for j in player_list:
         j.init_reward()
@@ -147,20 +172,8 @@ while True:
         run_game(num_player, round_num, task_tmp[task_header[i]])
         for j in player_list:
             j.init_time()
-        max_num=0
-        for j in player_list:
-            if max_num<j.return_reward():
-                max_num=j.return_reward()
-        for j in player_list:
-            if max_num==j.return_reward():
-                print('1st '+j.nickname)
-    max_num=-1
-    for j in player_list:
-        if max_num < j.return_reward():
-            max_num = j.return_reward()
-    for j in player_list:
-        if max_num == j.return_reward():
-            print('1st : ' + j.nickname)
+        best_player()
+    best_player()
     if play_again():
         continue
     else:
