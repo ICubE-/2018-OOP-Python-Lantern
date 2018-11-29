@@ -24,7 +24,7 @@ class TextInput:
             self,
             initial_string="",
             font_family='font\\NanumGothic.ttf',
-            font_size=25,
+            font_size=15,
             antialias=True,
             text_color=(0, 0, 0),
             cursor_color=(0, 0, 1),

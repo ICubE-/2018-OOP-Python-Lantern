@@ -1,4 +1,3 @@
-'''
 # -*- coding: utf-8 -*-
 # -pip3 install pygame
 # -pip3 install heconvert
@@ -125,6 +124,7 @@ class monster():
     def view_status(self):
         pass
 
+    '''
 class InputBox:
     #https://stackoverflow.com/questions/46390231/how-to-create-a-text-input-box-with-pygame 에서 약간 변형
 
@@ -172,28 +172,32 @@ class InputBox:
         screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
         # Blit the rect.
         pygame.draw.rect(screen, self.color, self.rect, 2)
+        '''
 
 if __name__ == '__main__':
     run=True
-    textbox=InputBox(win_width*6/8+20, win_height*10/12, 200, 40)
+    textinput = pygame_textinput.TextInput()
     while run:
         pygame.time.delay(100)
         
-        for event in pygame.event.get():
+        events=pygame.event.get()
+
+        for event in events:
             if event.type == pygame.QUIT:
                 run = False
                 break
-            textbox.handle_event(event)
+            
         test=stage('조별과제', '객지프로젝트')
-        textbox.update()
-        textbox.draw(screen)
+        textinput.update(events)
+        # Blit its surface onto the screen
+        screen.blit(textinput.get_surface(), (100, 500))
         pygame.display.update()
         pass
     pygame.quit()
 
 
 
-
+'''
 해야할 일
 1. inputbox 한/영전환
 2. chating room 내용 표시
@@ -204,7 +208,7 @@ if __name__ == '__main__':
 7. stage끝나면 결과창
 8. 대기방
 
-'''
+
 
 import pygame_textinput
 import pygame
@@ -231,3 +235,4 @@ while True:
 
     pygame.display.update()
     clock.tick(30)
+    '''
