@@ -25,7 +25,7 @@ class player():
             ind=ind+1
 
     def take_time(self):
-        waste=max(zip(self.reward_dict.values(), self.reward_dict.keys()))[0]
+        waste=max(self.reward_dict.items(), key = lambda x: x[1])[0]
         self.reward_dict[waste]=0
 
     def init_time(self):
@@ -75,12 +75,13 @@ def run_game(num, round_num, task_stage):
                     input_list.append(tmp)
                     break
 
-        input_list_new = copy.deepcopy(input_list)
+        input_list_new = copy.copy(input_list)
 
         for i in input_list:
             for j in input_list:
                 if i[0]==j[0] and i!=j:
                     input_list.remove(i)
+                    input_list.remove(j)
 
         tot=0
         for i in input_list:
@@ -176,6 +177,7 @@ while True:
         j.init_reward()
     for i in range(stage_num):
         task_tmp=copy.deepcopy(task_list)
+        print(task_header[i])
         run_game(num_player, round_num, task_tmp[task_header[i]])
         for j in player_list:
             j.init_time()
