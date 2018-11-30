@@ -1,6 +1,6 @@
 import socket
 import threading
-from . import gui
+import gui
 
 server_ip = '127.0.0.1'
 server_port = 51742
@@ -12,7 +12,7 @@ status = 0
 
 def alert_connection_error():
     global status
-    print("연결이 비정상적으로 종료되었습니다.")
+    gui.AlertConnectionError().show()
     status = 1
 
 
@@ -25,7 +25,6 @@ def select_nickname():
     except ConnectionError:
         alert_connection_error()
         return
-
 
 
 def select_room():
@@ -102,7 +101,7 @@ def connect():
     global my_socket
 
     while True:
-
+        select_nickname()
         if status == 1:
             return
         select_room()

@@ -93,6 +93,8 @@ class ClientThread(threading.Thread):
         if self.status == 1:
             return
         data = self.receive()
+        if self.status == 1:
+            return
         self.room_name = data.decode('utf-8')
 
         if self.room_name not in room_dict:
