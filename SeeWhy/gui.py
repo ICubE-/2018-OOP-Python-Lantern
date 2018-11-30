@@ -18,15 +18,16 @@ GRAY=(50,50,50)
 MINT=(0,255,102)
 
 #기본값 정의
-win_width=1040
-win_height=560
+win_width=1340
+win_height=660
 ratio_title=1/12
 ratio_chatroom=3/4
 ratio_monster=8/12
 ratio_status=5/6
 bgcolor=WHITE
+chatting_t=[]
 screen = pygame.display.set_mode((win_width, win_height))
-chatting_text=''
+
 
 def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_chatroom, Ratio_Monster=ratio_monster, Ratio_Status=ratio_status, Ratio_Title=ratio_title, BgColor=bgcolor):
     global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen
@@ -42,7 +43,7 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
 
 
 class stage():
-    global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen
+    global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen, chatting_text
 
     def __init__(self, stage_name, round_name):
         pygame.display.set_caption('상!평!')
@@ -70,6 +71,7 @@ class stage():
 
         pygame.draw.rect(screen, (200,255,255), (25, 523, 720, 22))#입력창
         pygame.draw.rect(screen, MINT, (25, 523, 720, 22), 1)#입력창
+        pygame.draw.rect(screen, (200,255,255), (25, 385, 720, 130), 1)#채팅창
         pygame.draw.rect(screen, MINT, (25, 385, 720, 130), 1)#채팅창
         
         #stageTitle
@@ -86,16 +88,29 @@ class stage():
             print('No File!')
         return
 
+def chatting_input(sometext=''):
+    global chatting_t
+    if sometext:
+        print(sometext)
+        if len(chatting_t)>=7:
+            chatting_t.append(sometext)
+        else:
+            chatting_t=chatting_t[1:]
+            chatting_t.append(sometext)
 
-class chatroom():
-    def __init__(self):
-        self.nickname=nickname
-        self.chat_width=chat_width
-        self.chat_height=chat_height
+        print(chatting_t)
 
-    def text_input(self, sometext=''):
-        chatting_text=(sometext+'\n'+chatting_text)
-        pass
+    t=0
+    for c in chatting_t:
+        chat_fontobj = pygame.font.Font('font\\NanumGothic.ttf', 15)
+        chat = chat_fontobj.render(c, True, BLACK)
+        chat_rectObj = chat.get_rect()
+        chat_rectObj.center = (25+chat.get_width()/2, 385+chat.get_height()/2+t)
+        screen.blit(chat, chat_rectObj)
+        t+=17
+
+    pass
+
 
 class my_status():
     def __init__(self, stone1, stone2, stone3):
@@ -194,9 +209,10 @@ if __name__ == '__main__':
                 break
             
         test=stage('조별과제', '객지프로젝트')
-        textinput.update(events)
+        y=textinput.update(events)
         # Blit its surface onto the screen
         screen.blit(textinput.get_surface(), (30, 525))
+        chatting_input(y)
         pygame.display.update()
         pass
     pygame.quit()

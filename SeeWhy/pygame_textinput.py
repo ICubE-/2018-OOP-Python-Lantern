@@ -128,7 +128,7 @@ class TextInput:
                         temp_text=''
                         t=self.input_string
                         self.clear_text()
-                        #print(t)
+                        print(t)
                         return t
 
                     elif (event.key == pl.K_SPACE and pygame.key.get_mods() & pl.KMOD_SHIFT) or event.key==0:
@@ -196,7 +196,7 @@ class TextInput:
                     elif event.key == pl.K_RETURN:
                         t=self.input_string
                         self.clear_text()
-                        #print(t)
+                        print(t)
                         return t
 
                     elif event.key == pl.K_RIGHT:
