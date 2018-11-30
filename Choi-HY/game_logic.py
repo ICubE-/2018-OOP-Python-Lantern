@@ -47,9 +47,8 @@ class time_monster():
     def return_reward(self, rank):
         return self.reward[rank]
 
-def get_input(play):
-    global player_list
-    tmp=int(input('input choice')) #client에서 출력
+def get_input(play, player_list):
+    tmp=int(input('input choice (' + player_list[play].nickname + ') : ')) #client에서 출력
     return [tmp, player_list[play]]
 
 def print_status(): #전부 client에서 출력
@@ -58,7 +57,7 @@ def print_status(): #전부 client에서 출력
         print(j.card_list)
         print(j.reward_dict)
 
-def run_game(num, round_num, task_stage):
+def run_game(num, round_num, task_stage, player_list):
     for i in range(round_num):
         tmp=random.randint(0, 4-i)
         task_now=task_stage[tmp]
@@ -70,7 +69,7 @@ def run_game(num, round_num, task_stage):
 
         for i in range(num):
             while True:
-                tmp=get_input(i)
+                tmp=get_input(i, player_list)
                 if tmp[1].put_card(tmp[0]):
                     input_list.append(tmp)
                     break
