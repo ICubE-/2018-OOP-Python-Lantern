@@ -86,7 +86,7 @@ class TextInput:
 
                 if hangul:
                     
-                    #print(event.key)
+                    print(event.key)
 
                     if event.key == pl.K_BACKSPACE:
                         self.input_string = (
@@ -177,7 +177,7 @@ class TextInput:
 
                 else:
 
-                    #print(event.key)
+                    print(event.key)
 
                     if event.key == pl.K_BACKSPACE:
                         self.input_string = (

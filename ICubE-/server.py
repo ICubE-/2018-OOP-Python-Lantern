@@ -4,10 +4,7 @@ import time
 
 server_ip = '127.0.0.1'
 server_port = 51742
-banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
 
-client_sock_list = []       # 클라이언트 소켓을 저장하는 리스트.
-client_id_dict = {}         # 클라이언트 ID를 키로 하여 튜플 안에 닉네임과 게임방 이름을 저장하는 딕셔너리.
 room_dict = {}              # 게임방 이름을 키로 하여 리스트 안에 게임방 스레드를 저장하는 딕셔너리.
 
 
@@ -78,37 +75,14 @@ class ClientThread(threading.Thread):
             self.alert_connection_error()
 
     def select_nickname(self):
-        global client_id_dict
         global room_dict
 
-        while True:
-            data = self.receive()
-            if self.status == 1:
-                return
-            self.nickname = data.decode('utf-8')
-            if len(self.nickname)>10:
-                self.send(bytes("$tooLongNickname", 'utf-8'))
-                if self.status == 1:
-                    return
-                continue
-            flag = False
-            for letter in self.nickname:
-                if letter in banned_letters_in_nickname:
-                    flag = True
-                    break
-            if flag:
-                self.send(bytes("$bannedLetterInNickname", 'utf-8'))
-                if self.status == 1:
-                    return
-                continue
-            self.send(bytes("$confirmNickname", 'utf-8'))
-            if self.status == 1:
-                return
-            break
-        client_id_dict[self.client_id] = (self.nickname, "")
+        data = self.receive()
+        if self.status == 1:
+            return
+        self.nickname = data.decode('utf-8')
 
     def select_room(self):
-        global client_id_dict
         global room_dict
 
         available_room_name = []
@@ -126,10 +100,8 @@ class ClientThread(threading.Thread):
             room_dict[self.room_name].start()
             self.send(bytes("$giveHead", 'utf-8'))
         room_dict[self.room_name].add_client(self)
-        client_id_dict[self.client_id] = (self.nickname, self.room_name)
 
     def run(self):
-        global client_id_dict
         global room_dict
         
         self.select_nickname()
@@ -160,20 +132,15 @@ class ClientThread(threading.Thread):
                 break
 
 
-
 def connect():
     """
     소켓 연결을 위한 함수.
 
     :return: 없다.
     """
-    global client_sock_list
-    global client_id_dict
 
     while True:
         client_sock, client_address = server_sock.accept()
-        client_sock_list.append(client_sock)
-        client_id_dict.setdefault(client_sock.fileno(), ("", ""))
 
         ClientThread(client_sock, client_sock.fileno()).start()
 

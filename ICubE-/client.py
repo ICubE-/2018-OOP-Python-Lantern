@@ -1,8 +1,10 @@
 import socket
 import threading
+from . import gui
 
 server_ip = '127.0.0.1'
 server_port = 51742
+banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
 status = 0
 
 # WIP
@@ -13,32 +15,17 @@ def alert_connection_error():
     print("연결이 비정상적으로 종료되었습니다.")
     status = 1
 
+
 def select_nickname():
     global my_socket
 
-    print("10자 이하의 닉네임을 입력하세요.")
-    while True:
-        try:
-            nickname = input("> ")
-        except KeyboardInterrupt:
-            continue
-        try:
-            my_socket.send(bytes(nickname, 'utf-8'))
-        except ConnectionError:
-            alert_connection_error()
-            return
-        try:
-            data = my_socket.recv(1024)
-        except ConnectionError:
-            alert_connection_error()
-            return
-        sys_msg = data.decode('utf-8')
-        if sys_msg == "$confirmNickname":
-            break
-        elif sys_msg == "$tooLongNickname":
-            print("닉네임이 너무 깁니다. 10자 이하로 입력하세요.")
-        else:
-            print("닉네임에 특수문자를 사용할 수 없습니다.")
+    nickname = gui.ChooseNickname(banned_letters=banned_letters_in_nickname).show()
+    try:
+        my_socket.send(bytes(nickname, 'utf-8'))
+    except ConnectionError:
+        alert_connection_error()
+        return
+
 
 
 def select_room():
@@ -115,7 +102,7 @@ def connect():
     global my_socket
 
     while True:
-        select_nickname()
+
         if status == 1:
             return
         select_room()
