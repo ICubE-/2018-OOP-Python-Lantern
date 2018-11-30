@@ -23,8 +23,8 @@ class BaseGui:
         text_box_rect.center = center
         return text_box, text_box_rect
 
-    def make_input(self, font, font_size, color, center, width):
-        input = pygame_textinput.TextInput(font_family=font, font_size=font_size, text_color=color)
+    def make_input(self, font, font_size, color, center, width, max_len):
+        input = pygame_textinput.TextInput(font_family=font, font_size=font_size, text_color=color, max_text=max_len)
         input_box = pg.Rect(0, 0, 0, 0)
         input_box.size = (width+font_size/4, font_size*1.5)
         input_box.center = center
@@ -43,7 +43,7 @@ class ChooseNickname(BaseGui):
         self.screen.fill(LIGHT_GRAY)
         self.desc = "사용할 이름을 입력하세요."
         self.text, self.text_rect = self.make_text(self.desc, self.font, self.font_size, BLACK, (self.width/2, 200))
-        self.input, self.input_box = self.make_input(font, font_size, BLACK, (self.width/2, 300), 200)
+        self.input, self.input_box = self.make_input(font, font_size, BLACK, (self.width/2, 300), 200, 10)
 
     def show(self):
         while True:
