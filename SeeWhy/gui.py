@@ -176,7 +176,7 @@ class InputBox:
 
 if __name__ == '__main__':
     run=True
-    textinput = pygame_textinput.TextInput()
+    textinput = pygame_textinput.TextInput(max_text=10)
     while run:
         pygame.time.delay(100)
         
@@ -199,7 +199,7 @@ if __name__ == '__main__':
 
 '''
 해야할 일
-1. inputbox 한/영전환
+//1. inputbox 한/영전환
 2. chating room 내용 표시
 3. mystats, monster, 팀원 상태
 4. round별 bgm
@@ -207,6 +207,7 @@ if __name__ == '__main__':
 6. fail, success방
 7. stage끝나면 결과창
 8. 대기방
+9. 한글 방향키 설정
 
 
 
