@@ -25,19 +25,21 @@ ratio_chatroom=3/4
 ratio_monster=8/12
 ratio_status=5/6
 bgcolor=WHITE
+chat_num=(win_height*(1-ratio_monster)-60)//17-1
 chatting_t=[]
 screen = pygame.display.set_mode((win_width, win_height))
 
 
-def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_chatroom, Ratio_Monster=ratio_monster, Ratio_Status=ratio_status, Ratio_Title=ratio_title, BgColor=bgcolor):
-    global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen
-    Win_Width=win_width
-    Win_Height=win_height
-    Ratio_Chatroom=ratio_chatroom
+def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_chatroom, Ratio_Monster=ratio_monster, Ratio_Status=ratio_status, Ratio_Title=ratio_title, BgColor=bgcolor, Chat_Num=chat_num):
+    global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen, chat_num
+    win_width=Win_Width
+    win_height=Win_Height
+    ratio_chatroom=Ratio_Chatroom
     ratio_monster=Ratio_Monster
     ratio_status=Ratio_Status
     ratio_title=Ratio_Title
     bgcolor=BgColor
+    chat_num=(win_height*(1-ratio_monster)-60)//17-1
     screen = pygame.display.set_mode((win_width, win_height))
     pass
 
@@ -69,10 +71,10 @@ class stage():
         
         pygame.draw.line(screen, BLUE, (win_width*ratio_chatroom, win_height/2), (win_width-4, win_height/2), 4)#상태창 구분
 
-        pygame.draw.rect(screen, (200,255,255), (25, 523, 720, 22))#입력창
-        pygame.draw.rect(screen, MINT, (25, 523, 720, 22), 1)#입력창
-        pygame.draw.rect(screen, (200,255,255), (25, 385, 720, 130), 1)#채팅창
-        pygame.draw.rect(screen, MINT, (25, 385, 720, 130), 1)#채팅창
+        pygame.draw.rect(screen, (200,255,255), (25, win_height-34, win_width*ratio_chatroom-50, 22))#입력창
+        pygame.draw.rect(screen, MINT, (25, win_height-34, win_width*ratio_chatroom-50, 22), 1)#입력창
+        pygame.draw.rect(screen, (200,255,255), (25, win_height*ratio_monster+15, win_width*ratio_chatroom-50, win_height*(1-ratio_monster)-60), 1)#채팅창
+        pygame.draw.rect(screen, MINT, (25, win_height*ratio_monster+15, win_width*ratio_chatroom-50, win_height*(1-ratio_monster)-60), 1)#채팅창
         
         #stageTitle
     def Stage_Title(self):
@@ -89,23 +91,23 @@ class stage():
         return
 
 def chatting_input(sometext=''):
-    global chatting_t
+    global chatting_t, chat_num
     if sometext:
-        print(sometext)
-        if len(chatting_t)>=7:
+        #print(sometext)
+        if len(chatting_t)<=chat_num:
             chatting_t.append(sometext)
         else:
             chatting_t=chatting_t[1:]
             chatting_t.append(sometext)
 
-        print(chatting_t)
+        #print(chatting_t)
 
     t=0
     for c in chatting_t:
         chat_fontobj = pygame.font.Font('font\\NanumGothic.ttf', 15)
         chat = chat_fontobj.render(c, True, BLACK)
         chat_rectObj = chat.get_rect()
-        chat_rectObj.center = (25+chat.get_width()/2, 385+chat.get_height()/2+t)
+        chat_rectObj.center = (25+chat.get_width()/2, win_height*ratio_monster+15+chat.get_height()/2+t)
         screen.blit(chat, chat_rectObj)
         t+=17
 
@@ -211,7 +213,7 @@ if __name__ == '__main__':
         test=stage('조별과제', '객지프로젝트')
         y=textinput.update(events)
         # Blit its surface onto the screen
-        screen.blit(textinput.get_surface(), (30, 525))
+        screen.blit(textinput.get_surface(), (30, win_height-32))
         chatting_input(y)
         pygame.display.update()
         pass
@@ -221,15 +223,15 @@ if __name__ == '__main__':
 
 '''
 해야할 일
-//1. inputbox 한/영전환
-2. chating room 내용 표시
+//1. inputbox 한/영전환(수정완료)
+2. chating room 내용 표시(수정완료)
 3. mystats, monster, 팀원 상태
 4. round별 bgm
 5. 메뉴 방
 6. fail, success방
 7. stage끝나면 결과창
 8. 대기방
-9. 한글 방향키 설정
+9. 한글 방향키 설정 (수정불가)
 
 
 
