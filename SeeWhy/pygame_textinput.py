@@ -134,7 +134,7 @@ class TextInput:
                         converted_temp_text=''
 
                     else:
-                        if len(self.input_string)<=self.max_text:
+                        if len(self.input_string) < self.max_text:
                             
                             #기존꺼 빼고
                             self.input_string = (
@@ -146,7 +146,11 @@ class TextInput:
                             self.cursor_position = max(self.cursor_position - len(converted_temp_text), 0)
 
                             temp_text+=event.unicode
-                            converted_temp_text=e2h(temp_text)
+                            try:
+                                converted_temp_text=e2h(temp_text)
+                            except:
+                                temp_text=temp_text[:len(temp_text)-1]+temp_text[-1].lower()
+                                converted_temp_text=e2h(temp_text)
 
                             #다시 넣기
                             # If no special key is pressed, add unicode of key to input_string
@@ -204,7 +208,7 @@ class TextInput:
                         #print('English to Hangul')
 
                     else:
-                        if len(self.input_string)<=self.max_text:
+                        if len(self.input_string) < self.max_text:
                             # If no special key is pressed, add unicode of key to input_string
                             self.input_string = (
                                 self.input_string[:self.cursor_position]
