@@ -20,16 +20,19 @@ task_header = ['외부활동', '연구활동', '조별과제']
 task_list = {}
 
 # server에 저장 - 보상 리스트
-reward_list = [[[3, 1, 2], [1, 1, 2], [0, 1, 0]], [[3, 0, 0], [0, 2, 0], [0, 0, 1]], [[2, 1, 2], [1, 0, 1], [0, 1, 0]],
-               [[2, 2, 2], [1, 1, 1], [0, 0, 0]], [[1, 2, 1], [0, 0, 0], [0, 0, 0]]]
+reward_list = [[[3, 1, 2], [1, 1, 2], [0, 1, 0]], [[3, 0, 0], [0, 2, 0], [0, 0, 1]], [[2, 1, 2], [1, 0, 1], [0, 1, 0]], [[2, 2, 2], [1, 1, 1], [0, 0, 0]], [[1, 2, 1], [0, 0, 0], [0, 0, 0]]]
 time_name = {1: '공강시간1', 2: '1차자습시간', 3: '공강시간2', 4: '1, 2차 자습시간', 5: '공강시간3', 6: '평일자습시간', 7: '주말자습시간', 8: '밤샘시간'}
 reward_name = ['자유로운 공강', '행복한 취미생활', '편안한 숙면']
 hp_list = [8, 11, 14, 17, 20]
 
+stage_num=3
+round_num=5
+
 
 def get_input(play, player_list):
-    tmp = int(input('input choice (' + player_list[play].nickname + ') : '))  # client에서 출력
-    return [tmp, player_list[play]]
+    player_list[play].player_thread.send(bytes('$Input Choice : ', 'utf-8'))
+    data=player_list[play].player_thread.receive()
+    return data
 
 
 def print_status(player_list):  # 전부 client에서 출력
@@ -44,15 +47,15 @@ def run_game(num, round_num, task_stage, player_list):
         tmp = random.randint(0, 4 - i)
         task_now = task_stage[tmp]
         task_stage.pop(tmp)
-        print(task_now.name)  # client에서 출력
-        print(task_now.hp)  # client에서 출력
+        for play in player_list:
+            play.player_thread.send(task_now.name + ' ' + task_now.hp, 'utf-8')
 
         input_list = []
 
         for i in range(num):
             while True:
                 tmp = get_input(i, player_list)
-                if tmp[1].put_card(tmp[0]):
+                if player_list[i].put_card(tmp[0]):
                     input_list.append(tmp)
                     break
 
@@ -69,7 +72,8 @@ def run_game(num, round_num, task_stage, player_list):
             tot = tot + i[0]
 
         if task_now.hp <= tot:
-            print("Success")  # client에서 출력
+            for play in player_list:
+                play.player_thread.send(bytes("$Success", 'utf-8'))
             for i in range(3):
                 min = 99999
                 for j in input_list:
@@ -81,7 +85,8 @@ def run_game(num, round_num, task_stage, player_list):
                         input_list.remove(j)
 
         else:
-            print("Failed")  # client에서 출력
+            for play in player_list:
+                play.player_thread.send(bytes("$Failed", 'utf-8')) # client에서 출력
             min = 99999
             for i in input_list_new:
                 if i[0] < min:
@@ -90,7 +95,7 @@ def run_game(num, round_num, task_stage, player_list):
                 if i[0] == min:
                     i[1].take_time()
 
-        print_status()
+        print_status(player_list)
 
 
 def best_player(player_list):
@@ -103,21 +108,19 @@ def best_player(player_list):
             print('1st : ' + i.nickname)  # client에서 출력
 
 
-def play_again():
-    return input('Press Y to restart').lower().startswith('y')  # 이건 바뀔 예정
-
 
 class player():
-    def __init__(self, nickname):
-        self.nickname = nickname
+    def __init__(self, player_thread):
+        self.nickname = player_thread.nickname
         self.card_list = list(range(1, 8))
         self.reward_dict = {'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}
+        self.player_thread=player_thread
 
     def put_card(self, card_num):
         try:
             self.card_list.remove(card_num)
         except ValueError:
-            print("Choose From What You Have")  # client에서 출력
+            self.player_thread.send(bytes("Choose From What You Have", 'utf-8'))
             return False
         else:
             self.card_list.sort()
@@ -189,8 +192,19 @@ class RoomThread(threading.Thread):
             task_list[task_header[i]] = tmp
         player_list = []
         for i in self.member_thread:
-            player_list.append(player(i.nickname))
-        run_game()
+            player_list.append(player(i))
+        for j in player_list:
+            j.init_reward()
+        for i in range(stage_num):
+            task_tmp = copy.deepcopy(task_list)
+            for thread in self.member_thread:
+                thread.client_sock.send(bytes("$StageNow : "+task_header[i], 'utf-8'))
+            print(task_header[i])
+            run_game(len(player_list), round_num, task_tmp[task_header[i]], player_list)
+            for j in player_list:
+                j.init_time()
+                best_player(player_list)
+            best_player(player_list)
         for thread in self.member_thread:
             thread.client_sock.send(bytes("Game Over", 'utf-8'))
         self.status = 2
@@ -233,34 +247,12 @@ class ClientThread(threading.Thread):
             self.alert_connection_error()
 
     def select_nickname(self):
-        global client_id_dict
         global room_dict
 
-        while True:
-            data = self.receive()
-            if self.status == 1:
-                return
-            self.nickname = data.decode('utf-8')
-            if len(self.nickname) > 10:
-                self.send(bytes("$tooLongNickname", 'utf-8'))
-                if self.status == 1:
-                    return
-                continue
-            flag = False
-            for letter in self.nickname:
-                if letter in banned_letters_in_nickname:
-                    flag = True
-                    break
-            if flag:
-                self.send(bytes("$bannedLetterInNickname", 'utf-8'))
-                if self.status == 1:
-                    return
-                continue
-            self.send(bytes("$confirmNickname", 'utf-8'))
-            if self.status == 1:
-                return
-            break
-        client_id_dict[self.client_id] = (self.nickname, "")
+        data = self.receive()
+        if self.status == 1:
+            return
+        self.nickname = data.decode('utf-8')
 
     def select_room(self):
         global client_id_dict
