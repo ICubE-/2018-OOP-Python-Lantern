@@ -5,7 +5,7 @@ import copy
 class player():
     def __init__(self, nickname):
         self.nickname=nickname
-        self.card_list=list(range(1,8))
+        self.card_list=list(range(1,9))
         self.reward_dict={'자유로운 공강':1, '행복한 취미생활':1, '편안한 숙면':1}
 
     def put_card(self, card_num):
@@ -177,7 +177,7 @@ while True:
     for i in range(stage_num):
         task_tmp=copy.deepcopy(task_list)
         print(task_header[i])
-        run_game(num_player, round_num, task_tmp[task_header[i]])
+        run_game(num_player, round_num, task_tmp[task_header[i]], player_list)
         for j in player_list:
             j.init_time()
         best_player()

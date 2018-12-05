@@ -5,7 +5,7 @@ import gui
 server_ip = '127.0.0.1'
 server_port = 51742
 banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
-status = 0
+status = 0      # 0: before game start, 1: error, 2: game started
 
 # WIP
 
@@ -36,6 +36,8 @@ def select_room():
         alert_connection_error()
         return
     room_names = eval(data.decode('utf-8'))
+    selected_room = gui.ChooseRoom(rooms=room_names).show()
+    """
     print("게임방 목록")
     for room_name in room_names:
         print(room_name)
@@ -66,6 +68,7 @@ def select_room():
             break
         else:
             continue
+    """
     try:
         my_socket.send(bytes(selected_room, 'utf-8'))
     except ConnectionError:
@@ -75,8 +78,26 @@ def select_room():
 
 def receive():
     global my_socket
+    global status
 
-    while True:
+    while status == 0:
+        try:
+            data = my_socket.recv(1024)
+        except ConnectionError:
+            alert_connection_error()
+            return
+        if data.decode('utf-8') == "$gameStarted":
+            status = 2
+            print("please enter once")
+        else:
+            print(data.decode('utf-8'))
+
+
+def receive_tmp():
+    global my_socket
+    global status
+
+    while status == 0:
         try:
             data = my_socket.recv(1024)
         except ConnectionError:
@@ -88,7 +109,7 @@ def receive():
 def send():
     global my_socket
 
-    while True:
+    while status == 0:
         s = input('> ')
         try:
             my_socket.send(bytes(s, 'utf-8'))
@@ -116,7 +137,17 @@ def connect():
             c.join()
             if status == 1:
                 return
-
+            elif status == 2:
+                break
+        while True:
+            r = threading.Thread(target=receive_tmp, args=())
+            c = threading.Thread(target=send, args=())
+            r.start()
+            c.start()
+            r.join()
+            c.join()
+            if status == 1:
+                return
 
 
 server_address = (server_ip, server_port)
