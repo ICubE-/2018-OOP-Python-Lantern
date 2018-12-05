@@ -117,7 +117,7 @@ class ClientThread(threading.Thread):
             temp = 0
             while True:
                 if my_room.status == 1:
-                    pass
+                    break
                 data = self.receive()
                 if data.decode('utf-8') == "$gameStart":
                     my_room.game()
@@ -131,7 +131,7 @@ class ClientThread(threading.Thread):
                 continue
             while True:
                 data = self.receive()
-                break
+                my_room.chat(bytes(self.nickname + " : ", 'utf-8') + data)
 
 
 def connect():

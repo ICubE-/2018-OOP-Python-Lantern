@@ -124,6 +124,17 @@ def connect():
             c.join()
             if status == 1:
                 return
+            elif status == 2:
+                break
+        while True:
+            r = threading.Thread(target=receive, args=())
+            c = threading.Thread(target=send, args=())
+            r.start()
+            c.start()
+            r.join()
+            c.join()
+            if status == 1:
+                return
 
 
 
