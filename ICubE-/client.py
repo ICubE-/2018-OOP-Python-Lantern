@@ -88,6 +88,24 @@ def receive():
             return
         if data.decode('utf-8') == "$gameStarted":
             status = 2
+            print("please enter once")
+        else:
+            print(data.decode('utf-8'))
+
+
+def receive_tmp():
+    global my_socket
+    global status
+
+    while status == 0:
+        try:
+            data = my_socket.recv(1024)
+        except ConnectionError:
+            alert_connection_error()
+            return
+        if data.decode('utf-8') == "$gameStarted":
+            status = 2
+            print("please enter once")
         else:
             print(data.decode('utf-8'))
 
@@ -102,7 +120,6 @@ def send():
         except ConnectionError:
             alert_connection_error()
             return
-    print("please enter once")
 
 
 def connect():
@@ -127,7 +144,7 @@ def connect():
             elif status == 2:
                 break
         while True:
-            r = threading.Thread(target=receive, args=())
+            r = threading.Thread(target=receive_tmp, args=())
             c = threading.Thread(target=send, args=())
             r.start()
             c.start()
@@ -135,7 +152,6 @@ def connect():
             c.join()
             if status == 1:
                 return
-
 
 
 server_address = (server_ip, server_port)
