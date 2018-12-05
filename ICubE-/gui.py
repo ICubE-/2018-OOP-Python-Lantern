@@ -38,6 +38,16 @@ class BaseGui:
         input_box.center = center
         return input, input_box
 
+    def make_text_bunch(self, text_list, font, font_size, color, top, centerx):
+        text_box_list, text_box_rect_list = [], []
+        cnt = 0
+        for text in text_list:
+            tb, tbr = self.make_text(text, font, font_size, color, (centerx, top+font_size*cnt))
+            cnt += 1
+            text_box_list.append(tb)
+            text_box_rect_list.append(tbr)
+        return text_box_list, text_box_rect_list
+
 
 class AlertConnectionError(BaseGui):
     def __init__(self, width=400, height=200, font=FONT_DIR, font_size=16):
@@ -49,8 +59,8 @@ class AlertConnectionError(BaseGui):
 
         self.screen = pg.display.set_mode((self.width, self.height))
         self.screen.fill(LIGHT_GRAY)
-        self.msg = "연결이 비정상적으로 종료되었습니다."
-        self.text, self.text_rect = self.make_text(self.msg, self.font, self.font_size, BLACK, (self.width / 2, 100))
+        msg = "연결이 비정상적으로 종료되었습니다."
+        self.text, self.text_rect = self.make_text(msg, self.font, self.font_size, BLACK, (self.width / 2, 100))
 
     def show(self):
         while True:
@@ -78,12 +88,12 @@ class ChooseNickname(BaseGui):
 
         self.screen = pg.display.set_mode((self.width, self.height))
         self.screen.fill(LIGHT_GRAY)
-        self.desc = "사용할 이름을 입력하세요."
-        self.text, self.text_rect = self.make_text(self.desc, self.font, self.font_size, BLACK, (self.width/2, 200))
+        desc = "사용할 이름을 입력하세요."
+        self.text, self.text_rect = self.make_text(desc, self.font, self.font_size, BLACK, (self.width/2, 200))
         self.input, self.input_box = self.make_input(font, font_size, BLACK, (self.width/2, 280), 200, 10)
-        self.alert_desc = "특수문자를 사용할 수 없습니다."
-        self.alert_loc = (self.input_box.centerx, self.input_box.centery + 30)
-        self.alert, self.alert_rect = self.make_text(self.alert_desc, self.font, int(self.font_size/1.5), RED, self.alert_loc)
+        alert_desc = "특수문자를 사용할 수 없습니다."
+        alert_loc = (self.input_box.centerx, self.input_box.centery + 30)
+        self.alert, self.alert_rect = self.make_text(alert_desc, self.font, int(self.font_size/1.5), RED, alert_loc)
 
     def show(self):
         banned_letter_came = False
@@ -92,6 +102,7 @@ class ChooseNickname(BaseGui):
             events = pg.event.get()
             for event in events:
                 if event.type == pg.QUIT:
+                    pg.display.quit()
                     return
             nickname = self.input.update(events)
             if nickname:
@@ -119,7 +130,51 @@ class ChooseNickname(BaseGui):
             pg.time.delay(TIME_DELAY)
 
 
+class ChooseRoom(BaseGui):
+    def __init__(self, width=640, height=480, font=FONT_DIR, font_size=16, rooms=('A', 'B')):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.font = font
+        self.font_size = font_size
+
+        self.screen = pg.display.set_mode((self.width, self.height))
+        self.screen.fill(LIGHT_GRAY)
+        pf = ["게임방 목록", "="*40]
+        sf = ["="*40, "", "들어갈 게임방의 이름을 입력하세요.", "목록에 없는 이름이 입력되면 그 이름으로 게임방을 생성합니다."]
+        text_list = pf + list(rooms) + sf
+        self.text_list, self.text_rect_list = self.make_text_bunch(text_list, font, font_size, BLACK, 80, self.width/2)
+        # desc = "게임방 목록\n"+"\n".join(rooms)+"\n들어갈 게임방의 이름을 입력하세요.\n목록에 없는 이름이 입력되면 그 이름으로 게임방을 생성합니다."
+        # self.text, self.text_rect = self.make_text(desc, self.font, self.font_size, BLACK, (self.width / 2, 200))
+        self.input, self.input_box = self.make_input(font, font_size, BLACK, (self.width/2, 400), 200, 20)
+
+    def show(self):
+        while True:
+            events = pg.event.get()
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    return
+            room_name = self.input.update(events)
+            if room_name:
+                pg.display.quit()
+                return room_name
+
+            self.screen.fill(LIGHT_GRAY)
+            for i in range(len(self.text_list)):
+                self.screen.blit(self.text_list[i], self.text_rect_list[i])
+            # self.screen.blit(self.text, self.text_rect)
+            pg.draw.rect(self.screen, WHITE, self.input_box, 0)
+            pg.draw.rect(self.screen, BLACK, self.input_box, 1)
+            input_loc = (self.input_box.left + self.font_size / 4, self.input_box.top + self.font_size / 4)
+            self.screen.blit(self.input.get_surface(), input_loc)
+            pg.display.update()
+
+            pg.time.delay(TIME_DELAY)
+
+
 if __name__ == '__main__':
     # tmp = ChooseNickname()
-    tmp = AlertConnectionError()
+    # tmp = AlertConnectionError()
+    tmp = ChooseRoom()
     tmp.show()
