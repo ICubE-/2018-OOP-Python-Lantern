@@ -25,6 +25,7 @@ ratio_chatroom=3/4
 ratio_monster=8/12
 ratio_status=5/6
 bgcolor=WHITE
+round_name=''
 chat_num=(win_height*(1-ratio_monster)-60)//17-1
 chatting_t=[]
 screen = pygame.display.set_mode((win_width, win_height))
@@ -132,17 +133,47 @@ class my_status():
 
 class who_let_the_stones_out():
     def __init__(self, somelist):
+        self.num=len(somelist)
         self.somelist=somelist
-        view_stones(somelist)
+        self.view_stones()
+
+    def view_stones(self):
+        vx=[]
+        vy=[]
+        for i in range(5): vx.append(self.tx(i+1))
+        for i in range((len(self.somelist)-1)//5+1): vy.append(self.ty(i))
+        for i in range(len(self.somelist)):
+            if self.somelist[i]:
+                pygame.draw.circle(screen, GREEN, (vx[i%5], vy[i//5]), 15)
+            else:
+                pygame.draw.circle(screen, RED, (vx[i%5], vy[i//5]), 15)
+
+    def tx(self, x):
+        return int(win_width*(ratio_chatroom+(1-ratio_chatroom)*x/6))
+
+    def ty(self, y):
+        return int(win_height*(1/6+y/12))
 
 class monster():
-    def __init__(self, name):
-        self.name=name
+    def __init__(self, round):
+        global round_name
+        self.round=round
         self.view_image()
-        self.view_status()
+        if round_name!=round:
+            round_name=round
+            self.bgm()
 
     def view_image(self):
         pass
+
+    def bgm(self):
+        try:
+            print(self.round)
+            pygame.mixer.music.load("music\\bgm\\{}.mp3".format(self.round)) 
+            pygame.mixer.music.play(-1,0.0)
+        except:
+            print("No file!")
+            pass
 
     def view_status(self):
         pass
@@ -200,6 +231,7 @@ class InputBox:
 if __name__ == '__main__':
     run=True
     textinput = pygame_textinput.TextInput()
+    tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
     while run:
         pygame.time.delay(10)
         
@@ -211,6 +243,8 @@ if __name__ == '__main__':
                 break
             
         test=stage('조별과제', '객지프로젝트')
+        rn=monster('객지프로젝트')
+        who_let_the_stones_out(tempstatus)
         y=textinput.update(events)
         # Blit its surface onto the screen
         screen.blit(textinput.get_surface(), (30, win_height-32))
