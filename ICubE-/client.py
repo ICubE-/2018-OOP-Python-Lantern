@@ -103,11 +103,7 @@ def receive_tmp():
         except ConnectionError:
             alert_connection_error()
             return
-        if data.decode('utf-8') == "$gameStarted":
-            status = 2
-            print("please enter once")
-        else:
-            print(data.decode('utf-8'))
+        print(data.decode('utf-8'))
 
 
 def send():
