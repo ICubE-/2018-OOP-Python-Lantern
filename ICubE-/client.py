@@ -12,14 +12,14 @@ status = 0      # 0: before game start, 1: error, 2: game started
 
 def alert_connection_error():
     global status
-    gui.AlertConnectionError().show()
+    gui.AlertConnectionErrorGui().show()
     status = 1
 
 
 def select_nickname():
     global my_socket
 
-    nickname = gui.ChooseNickname(banned_letters=banned_letters_in_nickname).show()
+    nickname = gui.ChooseNicknameGui(banned_letters=banned_letters_in_nickname).show()
     try:
         my_socket.send(bytes(nickname, 'utf-8'))
     except ConnectionError:
@@ -36,7 +36,7 @@ def select_room():
         alert_connection_error()
         return
     room_names = eval(data.decode('utf-8'))
-    selected_room = gui.ChooseRoom(rooms=room_names).show()
+    selected_room = gui.ChooseRoomGui(rooms=room_names).show()
     try:
         my_socket.send(bytes(selected_room, 'utf-8'))
     except ConnectionError:
