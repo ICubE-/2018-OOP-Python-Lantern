@@ -90,27 +90,35 @@ class TextInput:
                     #print(event.key)
 
                     if event.key == pl.K_BACKSPACE:
-                        self.input_string = (
-                            self.input_string[:max(self.cursor_position - len(converted_temp_text), 0)]
-                            + self.input_string[self.cursor_position:]
-                        )
+                        if len(converted_temp_text):
+                            self.input_string = (
+                                self.input_string[:max(self.cursor_position - len(converted_temp_text), 0)]
+                                + self.input_string[self.cursor_position:]
+                            )
 
-                        # Subtract one from cursor_pos, but do not go below zero:
-                        self.cursor_position = max(self.cursor_position - len(converted_temp_text), 0)
+                            # Subtract one from cursor_pos, but do not go below zero:
+                            self.cursor_position = max(self.cursor_position - len(converted_temp_text), 0)
                         
-                        converted_temp_text=converted_temp_text[:max(len(converted_temp_text)-1,0)]
-                        temp_text=h2e(converted_temp_text)
+                            converted_temp_text=converted_temp_text[:max(len(converted_temp_text)-1,0)]
+                            temp_text=h2e(converted_temp_text)
 
-                        #print(e2h(temp_text))
+                            #print(e2h(temp_text))
 
-                        # If no special key is pressed, add unicode of key to input_string
-                        self.input_string = (
-                            self.input_string[:self.cursor_position]
-                            + converted_temp_text
+                            # If no special key is pressed, add unicode of key to input_string
+                            self.input_string = (
+                                self.input_string[:self.cursor_position]
+                                + converted_temp_text
+                                + self.input_string[self.cursor_position:]
+                            )
+                            self.cursor_position += len(converted_temp_text) # Some are empty, e.g. K_UP
+                        else:
+                            self.input_string = (
+                            self.input_string[:max(self.cursor_position - 1, 0)]
                             + self.input_string[self.cursor_position:]
-                        )
-                        self.cursor_position += len(converted_temp_text) # Some are empty, e.g. K_UP
+                            )
 
+                            # Subtract one from cursor_pos, but do not go below zero:
+                            self.cursor_position = max(self.cursor_position - 1, 0)
 
 
                     elif event.key == pl.K_DELETE:
