@@ -12,14 +12,14 @@ status = 0      # 0: before game start, 1: error, 2: game started
 
 def alert_connection_error():
     global status
-    gui.AlertConnectionError().show()
+    gui.AlertConnectionErrorGui().show()
     status = 1
 
 
 def select_nickname():
     global my_socket
 
-    nickname = gui.ChooseNickname(banned_letters=banned_letters_in_nickname).show()
+    nickname = gui.ChooseNicknameGui(banned_letters=banned_letters_in_nickname).show()
     try:
         my_socket.send(bytes(nickname, 'utf-8'))
     except ConnectionError:
@@ -36,39 +36,7 @@ def select_room():
         alert_connection_error()
         return
     room_names = eval(data.decode('utf-8'))
-    selected_room = gui.ChooseRoom(rooms=room_names).show()
-    """
-    print("게임방 목록")
-    for room_name in room_names:
-        print(room_name)
-    print("들어갈 게임방의 이름을 입력하세요.")
-    print("목록에 없는 이름이 입력되면 그 이름으로 게임방을 생성합니다.")
-    while True:
-        while True:
-            try:
-                selected_room = input('> ')
-                break
-            except KeyboardInterrupt:
-                continue
-        if selected_room in room_names:
-            print("{} 게임방에 들어가는 것이 맞습니까?(Y/N)".format(selected_room))
-        else:
-            print("{} 게임방을 생성하는 것이 맞습니까?(Y/N)".format(selected_room))
-        # response = ""
-        while True:
-            try:
-                response = input('> ')
-            except KeyboardInterrupt:
-                continue
-            if not (response.upper().startswith('Y') or response.upper().startswith('N')):
-                continue
-            else:
-                break
-        if response.upper().startswith('Y'):
-            break
-        else:
-            continue
-    """
+    selected_room = gui.ChooseRoomGui(rooms=room_names).show()
     try:
         my_socket.send(bytes(selected_room, 'utf-8'))
     except ConnectionError:
@@ -97,7 +65,7 @@ def receive_tmp():
     global my_socket
     global status
 
-    while status == 0:
+    while True:
         try:
             data = my_socket.recv(1024)
         except ConnectionError:
