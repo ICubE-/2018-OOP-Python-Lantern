@@ -46,18 +46,17 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
 
 
 class stage():
-    global win_width, win_height, ratio_title, ratio_chatroom, ratio_monster, ratio_status, bgcolor, screen, chatting_text
 
-    def __init__(self, stage_name, round_name):
+    def __init__(self, stage_name, rd_name):
+        global round_name
         pygame.display.set_caption('상!평!')
         self.stage_name=stage_name
-        self.round_name=round_name
+        round_name=rd_name
 
-        clock = pygame.time.Clock()
+    def refill(self):
         screen.fill(WHITE)
         self.base_display()
         self.Stage_Title()
-
 
     def base_display(self):
         #base_display
@@ -158,12 +157,19 @@ class monster():
     def __init__(self, round):
         global round_name
         self.round=round
+        self.bgm()
+        try:
+            self.Img = pygame.image.load('images\\{}.png'.format(self.round))
+            self.x=win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
+            self.y=(win_height*(ratio_monster)-self.Img.get_rect().size[1])/2
+        except:
+            print('No file!')
+
+    def refill(self):
         self.view_image()
-        if round_name!=round:
-            round_name=round
-            self.bgm()
 
     def view_image(self):
+        screen.blit(self.Img, (self.x, self.y))
         pass
 
     def bgm(self):
@@ -232,6 +238,8 @@ if __name__ == '__main__':
     run=True
     textinput = pygame_textinput.TextInput()
     tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
+    test=stage('조별과제', '객지프로젝트')
+    mon=monster(round_name)
     while run:
         pygame.time.delay(10)
         
@@ -242,8 +250,9 @@ if __name__ == '__main__':
                 run = False
                 break
             
-        test=stage('조별과제', '객지프로젝트')
-        rn=monster('객지프로젝트')
+        test.refill()
+        mon.refill()
+
         who_let_the_stones_out(tempstatus)
         y=textinput.update(events)
         # Blit its surface onto the screen
