@@ -27,7 +27,7 @@ names={'KYPT' : ['대회 활동', 20],
        '융합@수학 산출물' : ['연구 활동', 20],
        '삼성휴먼테크논문쓰기' : ['연구 활동', 20],
        '객지프로젝트' : ['연구 활동', 20],
-       '도시환경과 도시계획 연구' : ['연구 활동', 20],
+       '도시환경과 도시계획연구' : ['연구 활동', 20],
        '논리적글쓰기 인문학 보고서' : ['연구 활동', 20],
        '공학개론 의자 만들기' : ['조별 과제', 20],
        '사회문제와인문학적상상력 발표' : ['조별 과제', 20],
@@ -244,10 +244,6 @@ class monster():
             dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y+self.Img.get_rect().size[1]/2)
             screen.blit(dg, dg_rectObj)
             self.cnt+=1
-
-            if self.cnt==len(resulting):
-                pygame.mixer.music.load("music\\bgm\\{}.mp3".format('result')) 
-                pygame.mixer.music.play(-1)
             
             #HP
             currentHP=max(names[round_name][1]-damage, 0)
@@ -258,7 +254,16 @@ class monster():
             HP_rectObj = HP.get_rect()
             HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
             screen.blit(HP, HP_rectObj)
+            
+            if self.cnt==len(resulting):
+                pygame.mixer.music.load("music\\bgm\\{}.mp3".format('result')) 
+                pygame.mixer.music.play(-1)
+                self.rs=result(currentHP)
+
         else:
+            if names[round_name][1] > damage:
+                screen.blit(self.Img, (self.x, self.y))
+            self.rs.refill()
             pass
 
     def bgm(self):
@@ -300,11 +305,33 @@ def system(instructions):
             except:
                 continue
     if instructions=='$stone':
-        tempstatus=[1,2,1,1,1,6,1,1,2,1,1,1,1,5,2,1]
+        tempstatus=[1,2,1,1,1,1,1,1,2,1,1,1,1,1,2,1]
     return
 
-def result():
-    global damage
+class result():
+    def __init__(self, hp):
+        self.hp=hp
+
+    def refill(self):
+        if self.hp:
+            self.Fail()
+        else:
+            self.Success()
+
+    def Success(self):
+        sc_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/5))
+        sc = sc_fontobj.render('SUCCESS', True, BLUE[1])
+        sc_rectObj = sc.get_rect()
+        sc_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
+        screen.blit(sc, sc_rectObj)
+
+    def Fail(self):
+        fail_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/5))
+        fail = fail_fontobj.render('FAIL', True, BLUE[1])
+        fail_rectObj = fail.get_rect()
+        fail_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
+        screen.blit(fail, fail_rectObj)
+
     #damage=0
 
     pass
@@ -332,7 +359,6 @@ def running():
             who_let_the_stones_out(tempstatus)
             mon.refill()
         else:
-            result()
             mon.view_result()
 
         y=textinput.update(events)
