@@ -52,6 +52,8 @@ screen = pygame.display.set_mode((win_width, win_height))
 flag=True
 resultflag=True
 y=0.0
+damage=0
+resulting=[0,0,0,0,20,0,0,0,0,-20,-20,0,0,0,0,20,20,0,0,0,0,-20,-20,0,0,0,0,20,18,0,0,0,0,-18,-18,0,0,0,0,18,18,0,0,0,0,-18,-15,0,0,0,0,15,15,0,0,0,0,-15,-10,0,0,0,0,10,5,0,0,0,0,-5,-5,0,0,0,0,5]
 
 
 def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_chatroom, Ratio_Monster=ratio_monster, Ratio_Status=ratio_status, Ratio_Title=ratio_title, BgColor=bgcolor, Chat_Num=chat_num):
@@ -164,7 +166,7 @@ class who_let_the_stones_out():
         self.view_stones()
 
     def view_stones(self):
-        global resultflag
+        global resultflag, damage
         vx=[]
         vy=[]
         self.someflag=True
@@ -174,12 +176,13 @@ class who_let_the_stones_out():
         for i in range(len(self.somelist)):
             if self.somelist[i]:
                 pygame.draw.circle(screen, GREEN, (vx[i%5], vy[i//5]), 15)
-                self.somesum+=somelist[i]
+                self.somesum+=self.somelist[i]
             else:
                 pygame.draw.circle(screen, RED, (vx[i%5], vy[i//5]), 15)
                 self.someflag=False
-        if self.someFlag:
+        if self.someflag:
             resultflag=False
+            damage = self.somesum
 
     def tx(self, x):
         return int(win_width*(ratio_chatroom+(1-ratio_chatroom)*x/6))
@@ -192,6 +195,8 @@ class monster():
         global round_name
         self.round=round
         self.bgm()
+        self.tempflag=True
+        self.cnt=0
         try:
             
             self.Img = pygame.image.load('images\\{}.png'.format(self.round))
@@ -218,9 +223,46 @@ class monster():
             y-=0.1
         pass
 
+    def view_result(self):
+        global resulting, damage
+        if self.cnt<len(resulting):
+            if self.tempflag:
+                self.tempflag=False
+                try:
+                    pygame.mixer.music.load("music\\soundeffect\\{}.mp3".format('punch')) 
+                    pygame.mixer.music.play(0)
+                    sleep(0.2)
+                except:
+                    print("No soundeffect file!!")
+                    pass
+
+            self.x+=resulting[self.cnt]
+            screen.blit(self.Img, (self.x, self.y))
+            dg_fontobj = pygame.font.Font('font\\NanumBarunGothicWeb.ttf', 40)
+            dg = dg_fontobj.render('{}'.format(damage), True, RED)
+            dg_rectObj = dg.get_rect()
+            dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y+self.Img.get_rect().size[1]/2)
+            screen.blit(dg, dg_rectObj)
+            self.cnt+=1
+
+            if self.cnt==len(resulting):
+                pygame.mixer.music.load("music\\bgm\\{}.mp3".format('result')) 
+                pygame.mixer.music.play(-1)
+            
+            #HP
+            currentHP=max(names[round_name][1]-damage, 0)
+            pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-self.name.get_height()/2,10*names[round_name][1], 32), 1)
+            pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
+            HP_fontobj = pygame.font.Font('font\\NanumBarunGothicWeb.ttf', 20)
+            HP = HP_fontobj.render('{}/{}'.format(currentHP, names[round_name][1]), True, BLACK)
+            HP_rectObj = HP.get_rect()
+            HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
+            screen.blit(HP, HP_rectObj)
+        else:
+            pass
+
     def bgm(self):
         try:
-            print(self.round)
             pygame.mixer.music.load("music\\bgm\\{}.mp3".format(self.round)) 
             pygame.mixer.music.play(-1,0.0)
         except:
@@ -231,67 +273,21 @@ class monster():
         global round_name
         #라운드 이름
         name_fontobj = pygame.font.Font('font\\NanumBarunGothicWeb.ttf', 25)
-        name = name_fontobj.render(round_name, True, BLACK)
-        name_rectObj = name.get_rect()
-        name_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-15-name.get_height()/2)
-        screen.blit(name, name_rectObj)
+        self.name = name_fontobj.render(round_name, True, BLACK)
+        name_rectObj = self.name.get_rect()
+        name_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-15-self.name.get_height()/2)
+        screen.blit(self.name, name_rectObj)
 
         #HP
         currentHP=names[round_name][1]
-        pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-name.get_height()/2,10*names[round_name][1], 32), 1)
-        pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
+        pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-self.name.get_height()/2,10*names[round_name][1], 32), 1)
+        pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
+        HP_fontobj = pygame.font.Font('font\\NanumBarunGothicWeb.ttf', 20)
+        HP = HP_fontobj.render('{}/{}'.format(currentHP, names[round_name][1]), True, BLACK)
+        HP_rectObj = HP.get_rect()
+        HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
+        screen.blit(HP, HP_rectObj)
         pass
-
-    '''
-class InputBox:
-    #https://stackoverflow.com/questions/46390231/how-to-create-a-text-input-box-with-pygame 에서 약간 변형
-
-    def __init__(self, x, y, w, h, text=''):
-        self.FONT=pygame.font.Font('font\\NanumGothic.ttf', 20)
-        self.COLOR_INACTIVE = pygame.Color('lightskyblue3')
-        self.COLOR_ACTIVE = pygame.Color('dodgerblue2')
-        self.rect = pygame.Rect(x, y, w, h)
-        self.color = self.COLOR_INACTIVE
-        self.text = text
-        self.txt_surface = self.FONT.render(text, True, self.color)
-        self.active = False
-
-    def handle_event(self, event):
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            # If the user clicked on the input_box rect.
-            if self.rect.collidepoint(event.pos):
-                # Toggle the active variable.
-                self.active = not self.active
-            else:
-                self.active = False
-            # Change the current color of the input box.
-            self.color = self.COLOR_ACTIVE if self.active else self.COLOR_INACTIVE
-        if event.type == pygame.KEYDOWN:
-            if self.active:
-                if event.key == pygame.K_RETURN:
-                    t=self.text
-                    print(t)
-                    self.text = ''
-                    return t
-                elif event.key == pygame.K_BACKSPACE:
-                    self.text = self.text[:-1]
-                else:
-                    self.text += event.unicode
-                # Re-render the text.
-                self.txt_surface = self.FONT.render(self.text, True, self.color)
-
-    def update(self):
-        # Resize the box if the text is too long.
-        width = max(200, self.txt_surface.get_width()+10)
-        self.rect.w = width
-
-    def draw(self, screen):
-        # Blit the text.
-        screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
-        # Blit the rect.
-        pygame.draw.rect(screen, self.color, self.rect, 2)
-        '''
-
 
 def system(instructions):
     global round_name, tempstatus
@@ -303,11 +299,18 @@ def system(instructions):
                 break
             except:
                 continue
-    if instruction=='$stone':
+    if instructions=='$stone':
         tempstatus=[1,2,1,1,1,6,1,1,2,1,1,1,1,5,2,1]
     return
 
+def result():
+    global damage
+    #damage=0
+
+    pass
+
 def running():
+    global tempstatus, damage
     run=True
     textinput = pygame_textinput.TextInput()
     test=stage('객지프로젝트')
@@ -323,10 +326,14 @@ def running():
                 break
             
         test.refill()
-        mon.refill()
+        
 
         if resultflag:
             who_let_the_stones_out(tempstatus)
+            mon.refill()
+        else:
+            result()
+            mon.view_result()
 
         y=textinput.update(events)
         # Blit its surface onto the screen
