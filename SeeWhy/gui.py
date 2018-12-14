@@ -5,6 +5,7 @@ import sys
 import pygame
 from pygame.locals import *
 import pygame_textinput
+from time import *
 
 pygame.init()
 
@@ -34,6 +35,9 @@ names={'KYPT' : ['대회 활동', 20],
        '공학개론 다리 만들기' : ['조별 과제', 20],
        '창작 시 콘서트' : ['조별 과제', 20]
        }
+tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
+
+
 win_width=1340
 win_height=660
 ratio_title=1/12
@@ -46,6 +50,7 @@ chat_num=(win_height*(1-ratio_monster)-60)//17-1
 chatting_t=[]
 screen = pygame.display.set_mode((win_width, win_height))
 flag=True
+resultflag=True
 y=0.0
 
 
@@ -159,15 +164,22 @@ class who_let_the_stones_out():
         self.view_stones()
 
     def view_stones(self):
+        global resultflag
         vx=[]
         vy=[]
+        self.someflag=True
+        self.somesum=0
         for i in range(5): vx.append(self.tx(i+1))
         for i in range((len(self.somelist)-1)//5+1): vy.append(self.ty(i))
         for i in range(len(self.somelist)):
             if self.somelist[i]:
                 pygame.draw.circle(screen, GREEN, (vx[i%5], vy[i//5]), 15)
+                self.somesum+=somelist[i]
             else:
                 pygame.draw.circle(screen, RED, (vx[i%5], vy[i//5]), 15)
+                self.someflag=False
+        if self.someFlag:
+            resultflag=False
 
     def tx(self, x):
         return int(win_width*(ratio_chatroom+(1-ratio_chatroom)*x/6))
@@ -225,7 +237,9 @@ class monster():
         screen.blit(name, name_rectObj)
 
         #HP
+        currentHP=names[round_name][1]
         pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-name.get_height()/2,10*names[round_name][1], 32), 1)
+        pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
         pass
 
     '''
@@ -278,10 +292,24 @@ class InputBox:
         pygame.draw.rect(screen, self.color, self.rect, 2)
         '''
 
+
+def system(instructions):
+    global round_name, tempstatus
+    if instructions=='$input':
+        while True:
+            round_name=input()
+            try:
+                names[round_name]
+                break
+            except:
+                continue
+    if instruction=='$stone':
+        tempstatus=[1,2,1,1,1,6,1,1,2,1,1,1,1,5,2,1]
+    return
+
 def running():
     run=True
     textinput = pygame_textinput.TextInput()
-    tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
     test=stage('객지프로젝트')
     mon=monster(round_name)
     while run:
@@ -297,7 +325,9 @@ def running():
         test.refill()
         mon.refill()
 
-        who_let_the_stones_out(tempstatus)
+        if resultflag:
+            who_let_the_stones_out(tempstatus)
+
         y=textinput.update(events)
         # Blit its surface onto the screen
         screen.blit(textinput.get_surface(), (30, win_height-32))
