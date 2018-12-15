@@ -19,7 +19,7 @@ GRAY=(217,230,248)
 MINT=(38,160,231)
 
 #기본값 정의
-names={'KYPT' : ['대회 활동', 20],
+names={'KYPT' : ['대회 활동', 30],
        '세종수학축전' : ['대회 활동', 20],
        '한화사이언스챌린지' : ['대회 활동', 20],
        '세종 해커톤' : ['대회 활동', 20],
@@ -67,6 +67,18 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
     bgcolor=BgColor
     chat_num=(win_height*(1-ratio_monster)-60)//17-1
     screen = pygame.display.set_mode((win_width, win_height))
+
+    #credit
+    print(
+        '''
+        "Unity" Kevin MacLeod (incompetech.com)
+        Licensed under Creative Commons: By Attribution 3.0 License
+        http://creativecommons.org/licenses/by/3.0/
+        "Welcome to HorrorLand" Kevin MacLeod (incompetech.com)
+        Licensed under Creative Commons: By Attribution 3.0 License
+        http://creativecommons.org/licenses/by/3.0/
+        '''
+        )
     pass
 
 
@@ -236,10 +248,10 @@ class monster():
 
             self.x+=resulting[self.cnt]
             screen.blit(self.Img, (self.x, self.y))
-            dg_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 40)
+            dg_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 60)
             dg = dg_fontobj.render('{}'.format(damage), True, RED)
             dg_rectObj = dg.get_rect()
-            dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y+self.Img.get_rect().size[1]/2)
+            dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y)
             screen.blit(dg, dg_rectObj)
             self.cnt+=1
             
