@@ -17,18 +17,30 @@ class RoomThread(threading.Thread):
 
     def add_client(self, client_thread):
         self.member_thread.append(client_thread)
+        if self.member_thread.__len__() == 1:
+            client_thread.send(bytes("$giveHead", 'utf-8'))
+        self.chat_members_list()
 
     def del_client(self, client_thread):
         if self.member_thread.index(client_thread) == 0:
             if self.member_thread.__len__() == 1:
+                room_dict.pop(self.room_name)
                 self.status = 2
             else:
                 self.member_thread[1].send(bytes("$giveHead", 'utf-8'))
         self.member_thread.remove(client_thread)
+        self.chat_members_list()
+
+    def chat_members_list(self):
+        members_nickname_list = []
+        for thread in self.member_thread:
+            members_nickname_list.append((thread.nickname))
+        time.sleep(0.1)
+        self.chat(bytes("$setMembers " + repr(tuple(members_nickname_list)), 'utf-8'))
 
     def chat(self, data):
         for thread in self.member_thread:
-            thread.client_sock.send(data)
+            thread.send(data)
 
     def game(self):
         for thread in self.member_thread:
@@ -108,7 +120,6 @@ class ClientThread(threading.Thread):
         if self.room_name not in room_dict:
             room_dict.setdefault(self.room_name, RoomThread(self.room_name))
             room_dict[self.room_name].start()
-            self.send(bytes("$giveHead", 'utf-8'))
         room_dict[self.room_name].add_client(self)
 
     def run(self):
