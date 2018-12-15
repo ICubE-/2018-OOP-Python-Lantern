@@ -5,9 +5,7 @@ import gui
 server_ip = '127.0.0.1'
 server_port = 51742
 banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
-status = 0      # 0: before game start, 1: error, 2: game started
-
-# WIP
+status = 0      # 0: before game start, 1: error, 2: game started, 3: end
 
 
 def alert_connection_error():
@@ -18,17 +16,23 @@ def alert_connection_error():
 
 def select_nickname():
     global my_socket
+    global status
 
     nickname = gui.ChooseNicknameGui(banned_letters=banned_letters_in_nickname).show()
+    if not nickname:
+        nickname = "$quit"
+        status = 1
     try:
         my_socket.send(bytes(nickname, 'utf-8'))
     except ConnectionError:
         alert_connection_error()
         return
+    return nickname
 
 
 def select_room():
     global my_socket
+    global status
 
     try:
         data = my_socket.recv(1024)
@@ -37,14 +41,18 @@ def select_room():
         return
     room_names = eval(data.decode('utf-8'))
     selected_room = gui.ChooseRoomGui(rooms=room_names).show()
+    if not selected_room:
+        selected_room = "$quit"
+        status = 1
     try:
         my_socket.send(bytes(selected_room, 'utf-8'))
     except ConnectionError:
         alert_connection_error()
         return
+    return selected_room
 
 
-def receive():
+def receive(room):
     global my_socket
     global status
 
@@ -56,9 +64,8 @@ def receive():
             return
         if data.decode('utf-8') == "$gameStarted":
             status = 2
-            print("please enter once")
         else:
-            print(data.decode('utf-8'))
+            room.add_chat(data.decode('utf-8'))
 
 
 def receive_tmp():
@@ -88,26 +95,40 @@ def send():
 
 def connect():
     global my_socket
+    global status
 
+    nickname = select_nickname()
+    if status == 1:
+        return
     while True:
-        select_nickname()
+        status = 0
+        room_name = select_room()
         if status == 1:
             return
-        select_room()
-        if status == 1:
-            return
-        while True:
-            r = threading.Thread(target=receive, args=())
-            c = threading.Thread(target=send, args=())
-            r.start()
-            c.start()
-            r.join()
-            c.join()
-            if status == 1:
-                return
-            elif status == 2:
-                break
-        while True:
+
+        room = gui.RoomGui(room_name=room_name, client_nickname=nickname)
+        r = threading.Thread(target=receive, args=(room, ))
+        r.start()
+        while status == 0:
+            msg, com = room.show()
+            if msg:
+                try:
+                    my_socket.send(bytes(msg, 'utf-8'))
+                except ConnectionError:
+                    alert_connection_error()
+                    return
+            if com:
+                try:
+                    my_socket.send(bytes(com, 'utf-8'))
+                except ConnectionError:
+                    alert_connection_error()
+                    return
+                if com == "$leave":
+                    status = 3
+                    room.quit()
+        r.join()
+
+        while status == 2:
             r = threading.Thread(target=receive_tmp, args=())
             c = threading.Thread(target=send, args=())
             r.start()

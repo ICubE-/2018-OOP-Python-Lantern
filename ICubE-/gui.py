@@ -272,7 +272,11 @@ class RoomGui(BaseGui):
             self.chat.pop(0)
         self.chat.append(msg)
 
+    def quit(self):
+        pg.display.quit()
+
     def show(self):
+        com = None
         events = pg.event.get()
         for event in events:
             if event.type == pg.QUIT:
@@ -281,13 +285,11 @@ class RoomGui(BaseGui):
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if self.game_button.collidepoint(event.pos[0], event.pos[1]):
-                        print("Game")
+                        com = "$gameStart" if self.is_head else "$ready"
                     elif self.leave_button.collidepoint(event.pos[0], event.pos[1]):
-                        print("LEAVE")
+                        com = "$leave"
 
         msg = self.msg.update(events)
-        if msg:
-            self.add_chat(msg)
 
         self.display_base()
         self.screen.blit(self.msg.get_surface(), (self.font_size*1.75, self.height - self.font_size*1.5))
@@ -301,6 +303,8 @@ class RoomGui(BaseGui):
         pg.display.update()
 
         pg.time.delay(TIME_DELAY)
+
+        return msg, com
 
 
 if __name__ == '__main__':

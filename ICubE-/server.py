@@ -54,7 +54,7 @@ class ClientThread(threading.Thread):
         self.client_id = client_id
         self.nickname = ""
         self.room_name = ""
-        self.status = 0     # 0: no problem, 1: quit
+        self.status = 0     # 0: no problem, 1: quit error, 2: quit no error
 
     def alert_connection_error(self):
         print("{}({})의 연결이 비정상적으로 종료되었습니다.".format(self.client_id, self.nickname))
@@ -78,7 +78,10 @@ class ClientThread(threading.Thread):
         global room_dict
 
         data = self.receive()
-        if self.status == 1:
+        if data.decode('utf-8') == "$quit":
+            self.status = 2
+            print("{}({})의 연결이 종료되었습니다.".format(self.client_id, self.nickname))
+        if self.status != 0:
             return
         self.nickname = data.decode('utf-8')
 
@@ -90,10 +93,13 @@ class ClientThread(threading.Thread):
             if room.status == 0:
                 available_room_name.append(room.room_name)
         self.send(bytes(repr(tuple(available_room_name)), 'utf-8'))
-        if self.status == 1:
+        if self.status != 0:
             return
         data = self.receive()
-        if self.status == 1:
+        if data.decode('utf-8') == "$quit":
+            self.status = 2
+            print("{}({})의 연결이 종료되었습니다.".format(self.client_id, self.nickname))
+        if self.status != 0:
             return
         self.room_name = data.decode('utf-8')
 
@@ -107,11 +113,11 @@ class ClientThread(threading.Thread):
         global room_dict
         
         self.select_nickname()
-        if self.status == 1:
+        if self.status != 0:
             return
         while True:
             self.select_room()
-            if self.status == 1:
+            if self.status != 0:
                 return
             my_room = room_dict[self.room_name]
             temp = 0
