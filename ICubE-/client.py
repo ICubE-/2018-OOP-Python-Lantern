@@ -10,6 +10,9 @@ status = 0      # 0: before game start, 1: error, 2: game started, 3: end
 
 def alert_connection_error():
     global status
+
+    if status == 1:
+        return
     gui.AlertConnectionErrorGui().show()
     status = 1
 
@@ -110,7 +113,11 @@ def connect():
         r = threading.Thread(target=receive, args=(room, ))
         r.start()
         while status == 0:
-            msg, com = room.show()
+            tmp = room.show()
+            if not tmp:
+                status = 1
+                return
+            msg, com = tmp
             if msg:
                 try:
                     my_socket.send(bytes(msg, 'utf-8'))
