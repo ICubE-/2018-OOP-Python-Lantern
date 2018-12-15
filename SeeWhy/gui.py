@@ -72,14 +72,13 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
 
 class stage():
 
-    def __init__(self, rd_name):
+    def __init__(self):
         global round_name, names
         pygame.display.set_caption('상!평!')
         try:
-            self.stage_name=names[rd_name][0]
+            self.stage_name=names[round_name][0]
         except:
             print('배열안의 이름이랑 넣은 이름이랑 안맞는듯')
-        round_name=rd_name
 
     def refill(self):
         screen.fill(WHITE)
@@ -172,8 +171,8 @@ class who_let_the_stones_out():
         self.someflag=True
         self.somesum=0
         for i in range(5): vx.append(self.tx(i+1))
-        for i in range((len(self.somelist)-1)//5+1): vy.append(self.ty(i))
-        for i in range(len(self.somelist)):
+        for i in range((self.num-1)//5+1): vy.append(self.ty(i))
+        for i in range(self.num):
             if self.somelist[i]:
                 pygame.draw.circle(screen, GREEN, (vx[i%5], vy[i//5]), 15)
                 self.somesum+=self.somelist[i]
@@ -191,15 +190,14 @@ class who_let_the_stones_out():
         return int(win_height*(1/6+y/12))
 
 class monster():
-    def __init__(self, round):
+    def __init__(self):
         global round_name
-        self.round=round
         self.bgm()
         self.tempflag=True
         self.cnt=0
         try:
             
-            self.Img = pygame.image.load('images\\{}.png'.format(self.round))
+            self.Img = pygame.image.load('images\\{}.png'.format(round_name))
             self.x=win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
             self.y=(win_height*(ratio_monster)-self.Img.get_rect().size[1])/2
             
@@ -238,7 +236,7 @@ class monster():
 
             self.x+=resulting[self.cnt]
             screen.blit(self.Img, (self.x, self.y))
-            dg_fontobj = pygame.font.Font('font\\NanumBarunGothicWeb.ttf', 40)
+            dg_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 40)
             dg = dg_fontobj.render('{}'.format(damage), True, RED)
             dg_rectObj = dg.get_rect()
             dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y+self.Img.get_rect().size[1]/2)
@@ -267,8 +265,9 @@ class monster():
             pass
 
     def bgm(self):
+        global round_name
         try:
-            pygame.mixer.music.load("music\\bgm\\{}.mp3".format(self.round)) 
+            pygame.mixer.music.load("music\\bgm\\{}.mp3".format(round_name)) 
             pygame.mixer.music.play(-1,0.0)
         except:
             print("No file!!")
@@ -294,19 +293,7 @@ class monster():
         screen.blit(HP, HP_rectObj)
         pass
 
-def system(instructions):
-    global round_name, tempstatus
-    if instructions=='$input':
-        while True:
-            round_name=input()
-            try:
-                names[round_name]
-                break
-            except:
-                continue
-    if instructions=='$stone':
-        tempstatus=[1,2,1,1,1,1,1,1,2,1,1,1,1,1,2,1]
-    return
+
 
 class result():
     def __init__(self, hp):
@@ -319,14 +306,14 @@ class result():
             self.Success()
 
     def Success(self):
-        sc_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/5))
+        sc_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
         sc = sc_fontobj.render('SUCCESS', True, BLUE[1])
         sc_rectObj = sc.get_rect()
         sc_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
         screen.blit(sc, sc_rectObj)
 
     def Fail(self):
-        fail_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/5))
+        fail_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
         fail = fail_fontobj.render('FAIL', True, BLUE[1])
         fail_rectObj = fail.get_rect()
         fail_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
@@ -336,44 +323,68 @@ class result():
 
     pass
 
-def running():
-    global tempstatus, damage
-    run=True
-    textinput = pygame_textinput.TextInput()
-    test=stage('객지프로젝트')
-    mon=monster(round_name)
-    while run:
-        pygame.time.delay(10)
-        
-        events=pygame.event.get()
+class running():
+    def __init__(self):
+        self.run=True
+        self.textinput = pygame_textinput.TextInput()
+        self.system('$input')
+        self.activate()
 
-        for event in events:
-            if event.type == pygame.QUIT:
-                run = False
-                break
+    def system(self, instructions):
+        global round_name, tempstatus, resultflag
+        if instructions=='$input':
+            while True:
+                try:
+                    round_name=input()
+                    names[round_name]
+
+                    #초기화
+                    self.mon=monster()
+                    self.test=stage()
+                    resultflag=True
+                    tempstatus=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    break
+                except:
+                    print('라운드 이름이 정확하지 않음')
+                    continue
+        if instructions=='$stone':
+            tempstatus=[1,2,1,6,1,1,1,1,2,1,1,1,1,1,2,1]
+        return
+
+    def activate(self):
+        global round_name, tempstatus
+        while self.run:
+            pygame.time.delay(10)
+        
+            events=pygame.event.get()
+
+            for event in events:
+                if event.type == pygame.QUIT:
+                    run = False
+                    break
             
-        test.refill()
+            self.test.refill()
         
 
-        if resultflag:
-            who_let_the_stones_out(tempstatus)
-            mon.refill()
-        else:
-            mon.view_result()
-
-        y=textinput.update(events)
-        # Blit its surface onto the screen
-        screen.blit(textinput.get_surface(), (30, win_height-32))
-        try:
-            if y[0]=='$':
-                system(y)
+            if resultflag:
+                who_let_the_stones_out(tempstatus)
+                self.mon.refill()
             else:
+                self.mon.view_result()
+
+            y=self.textinput.update(events)
+            # Blit its surface onto the screen
+            screen.blit(self.textinput.get_surface(), (30, win_height-32))
+            try:
+                if y[0]=='$':
+                    self.system(y)
+                else:
+                    chatting_input(y)
+            except:
                 chatting_input(y)
-        except:
-            chatting_input(y)
-        pygame.display.update()
-        pass
-    pygame.quit()
+            pygame.display.update()
+            pass
+        pygame.quit()
 
 if __name__ == '__main__':
     running()
