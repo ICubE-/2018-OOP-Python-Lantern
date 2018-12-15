@@ -67,6 +67,8 @@ def receive(room):
             return
         if data.decode('utf-8') == "$gameStarted":
             status = 2
+        elif data.decode('utf-8') == "$giveHead":
+            room.set_head()
         elif data.decode('utf-8').split()[0] == "$setMembers":
             room.set_members(eval(' '.join(data.decode('utf-8').split()[1:])))
         else:

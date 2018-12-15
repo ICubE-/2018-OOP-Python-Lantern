@@ -13,10 +13,12 @@ class RoomThread(threading.Thread):
         threading.Thread.__init__(self)
         self.room_name = room_name
         self.member_thread = []
+        self.member_is_ready = {}
         self.status = 0     # 0: before start, 1: started, 2: finished
 
     def add_client(self, client_thread):
         self.member_thread.append(client_thread)
+        self.member_is_ready.setdefault(client_thread.nickname, False)
         if self.member_thread.__len__() == 1:
             client_thread.send(bytes("$giveHead", 'utf-8'))
         self.chat_members_list()
@@ -28,13 +30,14 @@ class RoomThread(threading.Thread):
                 self.status = 2
             else:
                 self.member_thread[1].send(bytes("$giveHead", 'utf-8'))
+        self.member_is_ready.pop(client_thread.nickname)
         self.member_thread.remove(client_thread)
         self.chat_members_list()
 
     def chat_members_list(self):
         members_nickname_list = []
         for thread in self.member_thread:
-            members_nickname_list.append((thread.nickname))
+            members_nickname_list.append((thread.nickname, self.member_is_ready[thread.nickname]))
         time.sleep(0.1)
         self.chat(bytes("$setMembers " + repr(tuple(members_nickname_list)), 'utf-8'))
 
@@ -146,6 +149,9 @@ class ClientThread(threading.Thread):
                     return
                 if data.decode('utf-8') == "$gameStart":
                     my_room.game()
+                elif data.decode('utf-8') == "$ready":
+                    my_room.member_is_ready[self.nickname] = not my_room.member_is_ready[self.nickname]
+                    my_room.chat_members_list()
                 elif data.decode('utf-8') == "$leave":
                     my_room.del_client(self)
                     self.send(bytes("$tmp", 'utf-8'))
