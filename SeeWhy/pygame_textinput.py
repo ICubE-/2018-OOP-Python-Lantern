@@ -27,7 +27,7 @@ class TextInput:
             font_family='font\\NanumGothic.ttf',
             font_size=15,
             antialias=True,
-            max_text=120,
+            max_text=80,
             text_color=(0, 0, 0),
             cursor_color=(0, 0, 1),
             repeat_keys_initial_ms=400,
