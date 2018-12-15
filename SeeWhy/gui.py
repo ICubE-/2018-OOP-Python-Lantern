@@ -120,7 +120,7 @@ class stage():
         try:
             pygame.draw.rect(screen, BLUE[1], (0, 0, win_width*ratio_chatroom, win_height*ratio_title))
             stage_title_fontObj = pygame.font.Font('font\\NanumSquareRoundEB.ttf', 40)
-            text_stage = stage_title_fontObj.render('STAGE : '+self.stage_name, True, WHITE)
+            text_stage = stage_title_fontObj.render('STAGE : '+self.stage_name, True, (255,255,255))
             text_stage_rectObj = text_stage.get_rect()
             text_stage_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_title/2+2)
             screen.blit(text_stage, text_stage_rectObj)
@@ -155,20 +155,44 @@ def chatting_input(sometext=''):
 
 
 class my_status():
-    def __init__(self, stone1, stone2, stone3):
-        self.stone1=stone1
-        self.stone2=stone2
-        self.stone3=stone3
-        self.tot_block()
+    def __init__(self, stonedic, cardlist):
+        self.stonedic = stonedic
+        self.cardlist = cardlist
+        self.stone1=pygame.image.load('images\\{}.png'.format('자유로운 공강'))
+        self.stone2=pygame.image.load('images\\{}.png'.format('편안한 숙면'))
+        self.stone3=pygame.image.load('images\\{}.png'.format('행복한 취미생활'))
+        self.vx=[]
+        self.vy=[]
+        self.card=[]
+        self.someflag=True
+        self.somesum=0
+        for i in range(4): self.vx.append(self.tx(i+1))
+        for i in range(2): self.vy.append(self.ty(i))
+        for i in range(8): self.card.append(pygame.image.load('images\\{}.png'.format(i+1)))
 
-    def change_block(self, stone1=0, stone2=0, stone3=0):
-        self.stone1-=stone1
-        self.stone2-=stone2
-        self.stone3-=stone3
+        self.show_block()
 
-    def tot_block(self):
-        self.tot=(self.stone1+self.stone2+self.stone3)
-        show_block()
+    def tx(self, x):
+        return int(win_width*(ratio_chatroom+(1-ratio_chatroom)*x/5))
+
+    def ty(self, y):
+        return int(win_height*(19/24+y/12))
+
+    def show_block(self):
+        screen.blit(self.stone1, (self.vx[0]-26, win_height*(13/24)-10))
+        screen.blit(self.stone2, (self.vx[0]-26, win_height*(13/24+1/12)-10))
+        screen.blit(self.stone3, (self.vx[0]-26, win_height*(13/24+1/6)-10))
+        for i in range(len(self.stonedic)):
+            stone_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 40)
+            stone = stone_fontobj.render('{}'.format(self.stonedic[i+1]), True, BLACK)
+            stone_rectObj = stone.get_rect()
+            stone_rectObj.center = (self.vx[0]+self.stone1.get_rect().size[0]+10, stone.get_rect().size[1]/2+win_height*(13/24+i/12)-10)
+            screen.blit(stone, stone_rectObj)
+                
+        for i in range(8):
+            if self.cardlist[i]:
+                screen.blit(self.card[i], (self.vx[i%4]-self.card[i].get_rect().size[0]/2, self.vy[i//4]))
+        return
 
 class who_let_the_stones_out():
     def __init__(self, somelist):
@@ -186,10 +210,12 @@ class who_let_the_stones_out():
         for i in range((self.num-1)//5+1): vy.append(self.ty(i))
         for i in range(self.num):
             if self.somelist[i]:
-                pygame.draw.circle(screen, GREEN, (vx[i%5], vy[i//5]), 15)
+                s=pygame.image.load('images\\{}.png'.format('green'))
+                screen.blit(s, (vx[i%5]-20, vy[i//5]-30))
                 self.somesum+=self.somelist[i]
             else:
-                pygame.draw.circle(screen, RED, (vx[i%5], vy[i//5]), 15)
+                s=pygame.image.load('images\\{}.png'.format('red'))
+                screen.blit(s, (vx[i%5]-20, vy[i//5]-30))
                 self.someflag=False
         if self.someflag:
             resultflag=False
@@ -208,10 +234,9 @@ class monster():
         self.tempflag=True
         self.cnt=0
         try:
-            
             self.Img = pygame.image.load('images\\{}.png'.format(round_name))
-            self.x=win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
-            self.y=(win_height*(ratio_monster)-self.Img.get_rect().size[1])/2
+            self.x = win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
+            self.y = (win_height*(ratio_monster)-self.Img.get_rect().size[1])/2
             
         except:
             print('No file!!')
@@ -305,8 +330,6 @@ class monster():
         screen.blit(HP, HP_rectObj)
         pass
 
-
-
 class result():
     def __init__(self, hp):
         self.hp=hp
@@ -372,13 +395,14 @@ class running():
 
             for event in events:
                 if event.type == pygame.QUIT:
-                    run = False
+                    self.run = False
                     break
             
             self.test.refill()
         
 
             if resultflag:
+                my_status({1 : 1, 2 : 2, 3 : 3}, [1,1,1,1,1,1,1,1])
                 who_let_the_stones_out(tempstatus)
                 self.mon.refill()
             else:
