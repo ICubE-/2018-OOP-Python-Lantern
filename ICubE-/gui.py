@@ -23,6 +23,7 @@ GREEN = (0, 200, 0)
 
 class BaseGui:
     def __init__(self):
+        pg.display.init()
         pg.display.set_caption('상!평!')
         self.screen = None
 
