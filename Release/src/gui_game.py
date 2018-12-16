@@ -2,7 +2,7 @@
 # -pip3 install pygame
 # -pip3 install heconvert
 import pygame
-from src import pygame_textinput
+import pygame_textinput
 from time import *
 
 pygame.init()
@@ -82,8 +82,9 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
 
 class stage():
 
-    def __init__(self):
-        global round_name, names
+    def __init__(self, RoundName):
+        global names, round_name
+        round_name=RoundName
         pygame.display.set_caption('상!평!')
         try:
             self.stage_name=names[round_name][0]
@@ -229,16 +230,18 @@ class who_let_the_stones_out():
         return int(win_height*(1/6+y/12))
 
 class monster():
-    def __init__(self):
-        global round_name
+    def __init__(self, roundname, hP):
+        self.roundname=roundname
         self.bgm()
+        self.hp=hP
         self.tempflag=True
         self.cnt=0
         try:
-            self.Img = pygame.image.load('..\\resources\\images\\{}.png'.format(round_name))
+            self.Img = pygame.image.load('..\\resources\\images\\{}.png'.format(self.roundname))
             self.x = win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
-            self.y = (win_height*(ratio_monster)-self.Img.get_rect().size[1])/2
-            
+            self.y = (win_height*(ratio_monster)-self.Img.get_rect().size[1])/2 
+            name_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 25)
+            self.name = name_fontobj.render(self.roundname, True, BLACK)
         except:
             print('No file!!')
 
@@ -259,8 +262,8 @@ class monster():
             y-=0.1
         pass
 
-    def view_result(self):
-        global resulting, damage
+    def view_result(self, Damage):
+        global resulting
         if self.cnt<len(resulting):
             if self.tempflag:
                 self.tempflag=False
@@ -275,18 +278,18 @@ class monster():
             self.x+=resulting[self.cnt]
             screen.blit(self.Img, (self.x, self.y))
             dg_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic-ExtraBold.ttf', 60)
-            dg = dg_fontobj.render('{}'.format(damage), True, RED)
+            dg = dg_fontobj.render('{}'.format(Damage), True, RED)
             dg_rectObj = dg.get_rect()
             dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y)
             screen.blit(dg, dg_rectObj)
             self.cnt+=1
             
             #HP
-            currentHP=max(names[round_name][1]-damage, 0)
-            pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-self.name.get_height()/2,10*names[round_name][1], 32), 1)
-            pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
+            currentHP=max(self.hp-Damage, 0)
+            pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*self.hp/2,win_height*ratio_monster-65-self.name.get_height()/2,10*self.hp, 32), 1)
+            pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*self.hp/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(self.hp) * (10*self.hp-2), 10*self.hp-2), 0)), 30), 0)
             HP_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 20)
-            HP = HP_fontobj.render('{}/{}'.format(currentHP, names[round_name][1]), True, BLACK)
+            HP = HP_fontobj.render('{}/{}'.format(currentHP, self.hp), True, BLACK)
             HP_rectObj = HP.get_rect()
             HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
             screen.blit(HP, HP_rectObj)
@@ -297,35 +300,31 @@ class monster():
                 self.rs=result(currentHP)
 
         else:
-            if names[round_name][1] > damage:
+            if self.hp > damage:
                 screen.blit(self.Img, (self.x, self.y))
             self.rs.refill()
             pass
 
     def bgm(self):
-        global round_name
         try:
-            pygame.mixer.music.load("..\\resources\\music\\bgm\\{}.mp3".format(round_name))
+            pygame.mixer.music.load("..\\resources\\music\\bgm\\{}.mp3".format(self.roundname))
             pygame.mixer.music.play(-1,0.0)
         except:
             print("No file!!")
             pass
 
     def view_status(self):
-        global round_name
         #라운드 이름
-        name_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 25)
-        self.name = name_fontobj.render(round_name, True, BLACK)
         name_rectObj = self.name.get_rect()
         name_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-15-self.name.get_height()/2)
         screen.blit(self.name, name_rectObj)
 
         #HP
-        currentHP=names[round_name][1]
-        pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*names[round_name][1]/2,win_height*ratio_monster-65-self.name.get_height()/2,10*names[round_name][1], 32), 1)
-        pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*names[round_name][1]/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(names[round_name][1]) * (10*names[round_name][1]-2), 10*names[round_name][1]-2), 0)), 30), 0)
+        currentHP=self.hp
+        pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*self.hp/2,win_height*ratio_monster-65-self.name.get_height()/2,10*self.hp, 32), 1)
+        pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*self.hp/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(self.hp) * (10*self.hp-2), 10*self.hp-2), 0)), 30), 0)
         HP_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 20)
-        HP = HP_fontobj.render('{}/{}'.format(currentHP, names[round_name][1]), True, BLACK)
+        HP = HP_fontobj.render('{}/{}'.format(currentHP, self.hp), True, BLACK)
         HP_rectObj = HP.get_rect()
         HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
         screen.blit(HP, HP_rectObj)
