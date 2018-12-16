@@ -1,4 +1,4 @@
-from gui_game import *
+from src.gui_game import *
 
 #넣어줘야 할 값
 RoundName='KYPT'
@@ -34,7 +34,6 @@ while True:
     
     for event in events:
         if event.type == pygame.QUIT:
-            self.run = False
             break
         elif event.type == pygame.MOUSEBUTTONUP:
             #버튼 누르는것 ( stat선언보다 뒤에 있어야 버튼 눌림)

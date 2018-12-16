@@ -10,9 +10,9 @@ server_port = 51742
 room_dict = {}  # 게임방 이름을 키로 하여 리스트 안에 게임방 스레드를 저장하는 딕셔너리.
 
 # server에 저장 - 과제 리스트
-task_name1 = ['KYPT', '세종수학축전', '한화사이언스챌린지', '해커톤', '동아리 발표 대회']
-task_name2 = ['융합@수학 산출물', '삼성 휴먼테크 논문대상', '객체지향프로그래밍 프로젝트', '도시환경과 도시계획 연구', '논리적 글쓰기 인문학보고서']
-task_name3 = ['의자 만들기', '스파게티 다리 만들기', '교류 발전기 만들기', '논문 분석', '창작 시 콘서트']
+task_name1 = ['KYPT', '세종수학축전', '한화사이언스챌린지', '세종 해커톤', '동아리 발표 대회']
+task_name2 = ['융합@수학 산출물', '삼성휴먼테크논문쓰기', '객체지향프로그래밍 프로젝트', '도시환경과 도시계획 연구', '논리적글쓰기 인문학보고서']
+task_name3 = ['공학개론 의자 만들기', '스파게티 다리 만들기', '고급물리 교류 발전기 만들기', '사회문제와인문학적상상력 발표', '창작 시 콘서트']
 task_name_all = [task_name1, task_name2, task_name3]
 task_header = ['외부활동', '연구활동', '조별과제']
 task_list = {}
@@ -27,12 +27,18 @@ STAGE_NUM = 3
 ROUND_NUM = 5
 
 
-def get_input(play):
+def get_input(play, pl_list):
     while True:
         play.player_thread.send(bytes('$getInput', 'utf-8'))
-        data = int(play.player_thread.receive().decode('utf-8'))
-        if(play.put_card(data)):
-            return [data, play]
+        data = play.player_thread.receive().decode('utf-8')
+        if data.split()[0] == "$btn":
+            data = int(' '.join(data.split()[1:]))
+            if play.put_card(data):
+                return [data, play]
+        else:
+            for i in pl_list:
+                i.player_thread.send(bytes(data, 'utf-8'))
+
 
 
 class InputThread(Thread):
@@ -63,11 +69,12 @@ def run_game(round_num, task_stage, player_list):
         task_stage.pop(tmp)
         for play in player_list:
             play.player_thread.send(bytes("$monsterInfo "+repr((task_now.name, task_now.hp)), 'utf-8'))
+        time.sleep(0.2)
 
         input_list = []
         InputThread_list=[]
         for k in player_list:
-            InputThread_list.append(InputThread(target=get_input, args=(k, )))
+            InputThread_list.append(InputThread(target=get_input, args=(k, player_list, )))
         for q in InputThread_list:
             q.start()
         for r in InputThread_list:
@@ -75,8 +82,6 @@ def run_game(round_num, task_stage, player_list):
         input_list_only_num = []
         for i in input_list:
             input_list_only_num.append(input_list[0])
-        for i in player_list:
-            i.send(bytes(repr(input_list_only_num)))
         input_list_new = copy.copy(input_list)
         for i in input_list:
             chk=False
@@ -93,7 +98,7 @@ def run_game(round_num, task_stage, player_list):
 
         if task_now.hp <= tot:
             for play in player_list:
-                play.player_thread.send(bytes("$Success", 'utf-8'))
+                play.player_thread.send(bytes("$Success "+str(tot), 'utf-8'))
             for number in range(3):
                 min_val = 99999
                 for j in input_list:
@@ -106,7 +111,7 @@ def run_game(round_num, task_stage, player_list):
 
         else:
             for play in player_list:
-                play.player_thread.send(bytes("$Failed", 'utf-8')) # client에서 출력
+                play.player_thread.send(bytes("$Failed "+str(tot), 'utf-8')) # client에서 출력
             min_val = 99999
             for k in input_list_new:
                 if k[0] < min_val:
