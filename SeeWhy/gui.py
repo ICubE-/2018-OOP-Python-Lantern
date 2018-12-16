@@ -21,18 +21,18 @@ MINT=(38,160,231)
 #기본값 정의
 names={'KYPT' : ['대회 활동', 30],
        '세종수학축전' : ['대회 활동', 20],
-       '한화사이언스챌린지' : ['대회 활동', 20],
+       '한화사이언스챌린지' : ['대회 활동', 25],
        '세종 해커톤' : ['대회 활동', 20],
        '동아리 발표 대회' : ['대회 활동', 20],
-       '융합@수학 산출물' : ['연구 활동', 20],
-       '삼성휴먼테크논문쓰기' : ['연구 활동', 20],
-       '객지프로젝트' : ['연구 활동', 20],
+       '융합@수학 산출물' : ['연구 활동', 50],
+       '삼성휴먼테크논문쓰기' : ['연구 활동', 40],
+       '객지프로젝트' : ['연구 활동', 80],
        '도시환경과 도시계획연구' : ['연구 활동', 20],
        '논리적글쓰기 인문학 보고서' : ['연구 활동', 20],
-       '공학개론 의자 만들기' : ['조별 과제', 20],
-       '사회문제와인문학적상상력 발표' : ['조별 과제', 20],
+       '공학개론 의자 만들기' : ['조별 과제', 10],
+       '사회문제와인문학적상상력 발표' : ['조별 과제', 10],
        '고급물리 교류발전기 만들기' : ['조별 과제', 20],
-       '공학개론 다리 만들기' : ['조별 과제', 20],
+       '공학개론 다리 만들기' : ['조별 과제', 10],
        '창작 시 콘서트' : ['조별 과제', 20]
        }
 tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
@@ -156,11 +156,11 @@ def chatting_input(sometext=''):
 
 class my_status():
     def __init__(self, stonedic, cardlist):
-        self.stonedic = stonedic
+        self.stonedic = list(stonedic.values())
         self.cardlist = cardlist
         self.stone1=pygame.image.load('images\\{}.png'.format('자유로운 공강'))
-        self.stone2=pygame.image.load('images\\{}.png'.format('편안한 숙면'))
-        self.stone3=pygame.image.load('images\\{}.png'.format('행복한 취미생활'))
+        self.stone2=pygame.image.load('images\\{}.png'.format('행복한 취미생활'))
+        self.stone3=pygame.image.load('images\\{}.png'.format('편안한 숙면'))
         self.vx=[]
         self.vy=[]
         self.card=[]
@@ -182,16 +182,19 @@ class my_status():
         screen.blit(self.stone1, (self.vx[0]-26, win_height*(13/24)-10))
         screen.blit(self.stone2, (self.vx[0]-26, win_height*(13/24+1/12)-10))
         screen.blit(self.stone3, (self.vx[0]-26, win_height*(13/24+1/6)-10))
+        
         for i in range(len(self.stonedic)):
             stone_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 40)
-            stone = stone_fontobj.render('{}'.format(self.stonedic[i+1]), True, BLACK)
+            stone = stone_fontobj.render('{}'.format(self.stonedic[i]), True, BLACK)
             stone_rectObj = stone.get_rect()
             stone_rectObj.center = (self.vx[0]+self.stone1.get_rect().size[0]+10, stone.get_rect().size[1]/2+win_height*(13/24+i/12)-10)
             screen.blit(stone, stone_rectObj)
-                
+        
+        self.C=[]
         for i in range(8):
             if self.cardlist[i]:
                 screen.blit(self.card[i], (self.vx[i%4]-self.card[i].get_rect().size[0]/2, self.vy[i//4]))
+                self.C.append(pygame.Rect((self.vx[i%4]-self.card[i].get_rect().size[0]/2, self.vy[i//4]),(self.card[i].get_rect().size[0], self.card[i].get_rect().size[1])))
         return
 
 class who_let_the_stones_out():
@@ -377,13 +380,13 @@ class running():
                     self.mon=monster()
                     self.test=stage()
                     resultflag=True
-                    tempstatus=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
+                    tempstatus=[0,0,0,1,0,1,0]
                     break
                 except:
                     print('라운드 이름이 정확하지 않음')
                     continue
         if instructions=='$stone':
-            tempstatus=[1,2,1,6,1,1,1,1,2,1,1,1,1,1,2,1]
+            tempstatus=[4,2,2,6,4,3,5]
         return
 
     def activate(self):
@@ -393,16 +396,11 @@ class running():
         
             events=pygame.event.get()
 
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.run = False
-                    break
-            
             self.test.refill()
         
 
             if resultflag:
-                my_status({1 : 1, 2 : 2, 3 : 3}, [1,1,1,1,1,1,1,1])
+                self.st = my_status({'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}, [1,1,1,1,1,1,1,1])
                 who_let_the_stones_out(tempstatus)
                 self.mon.refill()
             else:
@@ -418,6 +416,18 @@ class running():
                     chatting_input(y)
             except:
                 chatting_input(y)
+                
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.run = False
+                    break
+                elif event.type == pygame.MOUSEBUTTONUP:
+                    if event.button == 1:
+                        for i in range(8):
+                            if self.st.C[i].collidepoint(event.pos[0], event.pos[1]):
+                                buttonpushed=i
+                                print(i)
+            
             pygame.display.update()
             pass
         pygame.quit()
