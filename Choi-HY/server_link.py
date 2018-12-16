@@ -23,8 +23,8 @@ time_name = {1: '공강시간1', 2: '1차자습시간', 3: '공강시간2', 4: '
 reward_name = ['자유로운 공강', '행복한 취미생활', '편안한 숙면']
 hp_list = [8, 11, 14, 17, 20]
 
-stage_num=3
-round_num=5
+STAGE_NUM = 3
+ROUND_NUM = 5
 
 
 def get_input(play):
@@ -213,10 +213,10 @@ class RoomThread(Thread):
             self.player_list.append(player(i))
         for j in self.player_list:
             j.init_reward()
-        for i in range(stage_num):
+        for i in range(STAGE_NUM):
             task_tmp = copy.deepcopy(task_list)
             self.chat(bytes("$StageNow : "+'\n', 'utf-8'))
-            run_game(round_num, task_tmp[task_header[i]], self.player_list)
+            run_game(ROUND_NUM, task_tmp[task_header[i]], self.player_list)
             for j in self.player_list:
                 j.init_time()
             max_num = 0
