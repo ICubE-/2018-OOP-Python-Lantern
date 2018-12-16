@@ -1,6 +1,7 @@
 import socket
 import threading
 from src import gui
+from src import gui_game as gg
 
 server_ip = '127.0.0.1'
 server_port = 51742
@@ -75,17 +76,27 @@ def receive(room):
             room.add_chat(data.decode('utf-8'))
 
 
-def receive_tmp():
+def receive_in_game(game):
     global my_socket
     global status
 
-    while True:
+    while status == 2:
         try:
             data = my_socket.recv(1024)
         except ConnectionError:
             alert_connection_error()
             return
-        print(data.decode('utf-8'))
+        code = data.decode('utf-8')
+        if code.split()[0] == "$monsterInfo":
+            info = eval(' '.join(code.split()[1:]))
+            game.system("$input", info)
+        elif code == "$getInput":
+            pass
+        elif code == "$Success":
+            pass
+        elif code == "$Failed":
+            pass
+        print(code)
 
 
 def send():
@@ -93,6 +104,7 @@ def send():
 
     while status == 0:
         s = input('> ')
+        print(s)
         try:
             my_socket.send(bytes(s, 'utf-8'))
         except ConnectionError:
@@ -136,14 +148,18 @@ def connect():
                     return
                 if com == "$leave":
                     status = 3
-                    room.quit()
+        room.quit()
         r.join()
 
         while status == 2:
-            r = threading.Thread(target=receive_tmp, args=())
+            game = gg.running()
+            r = threading.Thread(target=receive_in_game, args=(game, ))
             c = threading.Thread(target=send, args=())
             r.start()
             c.start()
+
+
+
             r.join()
             c.join()
             if status == 1:
