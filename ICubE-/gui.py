@@ -4,7 +4,7 @@ import pygame as pg
 import os
 import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-from SeeWhy import pygame_textinput
+import pygame_textinput
 
 FONT_DIR = '..\\SeeWhy\\font\\NanumSquareRoundEB.ttf'
 
