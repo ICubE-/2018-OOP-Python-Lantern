@@ -156,11 +156,11 @@ def chatting_input(sometext=''):
 
 class my_status():
     def __init__(self, stonedic, cardlist):
-        self.stonedic = stonedic
+        self.stonedic = list(stonedic.values())
         self.cardlist = cardlist
         self.stone1=pygame.image.load('images\\{}.png'.format('자유로운 공강'))
-        self.stone2=pygame.image.load('images\\{}.png'.format('편안한 숙면'))
-        self.stone3=pygame.image.load('images\\{}.png'.format('행복한 취미생활'))
+        self.stone2=pygame.image.load('images\\{}.png'.format('행복한 취미생활'))
+        self.stone3=pygame.image.load('images\\{}.png'.format('편안한 숙면'))
         self.vx=[]
         self.vy=[]
         self.card=[]
@@ -185,7 +185,7 @@ class my_status():
         
         for i in range(len(self.stonedic)):
             stone_fontobj = pygame.font.Font('font\\NanumGothic-ExtraBold.ttf', 40)
-            stone = stone_fontobj.render('{}'.format(self.stonedic[i+1]), True, BLACK)
+            stone = stone_fontobj.render('{}'.format(self.stonedic[i]), True, BLACK)
             stone_rectObj = stone.get_rect()
             stone_rectObj.center = (self.vx[0]+self.stone1.get_rect().size[0]+10, stone.get_rect().size[1]/2+win_height*(13/24+i/12)-10)
             screen.blit(stone, stone_rectObj)
@@ -400,7 +400,7 @@ class running():
         
 
             if resultflag:
-                self.st = my_status({1 : 1, 2 : 2, 3 : 3}, [1,1,1,1,1,1,1,1])
+                self.st = my_status({'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}, [1,1,1,1,1,1,1,1])
                 who_let_the_stones_out(tempstatus)
                 self.mon.refill()
             else:
