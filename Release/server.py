@@ -62,8 +62,8 @@ def run_game(round_num, task_stage, player_list):
         task_now = task_stage[tmp]
         task_stage.pop(tmp)
         for play in player_list:
-            play.player_thread.send(bytes(task_now.name+'\n', 'utf-8'))
-            play.player_thread.send(bytes(str(task_now.hp)+'\n', 'utf-8'))
+            play.player_thread.send(bytes(task_now.name, 'utf-8'))
+            play.player_thread.send(bytes(str(task_now.hp), 'utf-8'))
 
         input_list = []
         InputThread_list=[]
@@ -73,6 +73,11 @@ def run_game(round_num, task_stage, player_list):
             q.start()
         for r in InputThread_list:
             input_list.append(r.join())
+        input_list_only_num = []
+        for i in input_list:
+            input_list_only_num.append(input_list[0])
+        for i in player_list:
+            i.send(bytes(repr(input_list_only_num)))
 
         input_list_new = copy.copy(input_list)
         for a in input_list:
