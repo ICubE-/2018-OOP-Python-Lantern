@@ -85,13 +85,15 @@ def receive_tmp():
         except ConnectionError:
             alert_connection_error()
             return
+        print('recv')
         print(data.decode('utf-8'))
 
 
 def send():
     global my_socket
 
-    while status == 0:
+    while status == 2:
+        print('lets send')
         s = input('> ')
         try:
             my_socket.send(bytes(s, 'utf-8'))
@@ -140,6 +142,7 @@ def connect():
         r.join()
 
         while status == 2:
+            print('gamestart')
             r = threading.Thread(target=receive_tmp, args=())
             c = threading.Thread(target=send, args=())
             r.start()
