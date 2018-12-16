@@ -96,7 +96,7 @@ def receive_in_game(game):
         elif code.split()[0] == "$Success" or code.split()[0] == "$Failed":
             game.damage = code.split()[1]
         else:
-            game.chatting_input(code)
+            gg.chatting_input(code)
         print(code)
 
 

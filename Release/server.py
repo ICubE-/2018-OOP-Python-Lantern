@@ -57,7 +57,6 @@ class InputThread(Thread):
 
 def print_status(player_list):  # 전부 client에서 출력
     for j in player_list:
-        j.player_thread.send(bytes(j.nickname))
         j.player_thread.send(bytes(repr(j.card_list)))
         j.player_thread.send(bytes(repr(j.reward_dict)))
 
@@ -69,7 +68,7 @@ def run_game(round_num, task_stage, player_list):
         task_stage.pop(tmp)
         for play in player_list:
             play.player_thread.send(bytes("$monsterInfo "+repr((task_now.name, task_now.hp)), 'utf-8'))
-        time.sleep(0.2)
+        time.sleep(0.5)
 
         input_list = []
         InputThread_list=[]
@@ -183,6 +182,7 @@ class RoomThread(Thread):
         self.member_is_ready.setdefault(client_thread.nickname, False)
         if self.member_thread.__len__() == 1:
             client_thread.send(bytes("$giveHead", 'utf-8'))
+        time.sleep(0.1)
         self.chat_members_list()
 
     def del_client(self, client_thread):
