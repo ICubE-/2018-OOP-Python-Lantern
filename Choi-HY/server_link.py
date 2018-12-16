@@ -129,16 +129,6 @@ class player():
         else:
             self.player_thread.send(bytes("Choose From What You Have", 'utf-8'))
             return False
-        '''
-        try:
-            self.card_list.remove(card_num)
-        except ValueError:
-            self.player_thread.send(bytes("Choose From What You Have", 'utf-8'))
-            return False
-        else:
-            self.card_list.sort()
-            return True
-        '''
 
     def get_reward(self, amount):
         ind = 0
