@@ -1,14 +1,12 @@
 import socket
 from threading import Thread
 import random
+import time
 import copy
 
 server_ip = '127.0.0.1'
 server_port = 51742
-banned_letters_in_nickname = "`~!@#$%^&*()-=+[]{}\\|;:'\",<.>/? "
 
-client_sock_list = []  # 클라이언트 소켓을 저장하는 리스트.
-client_id_dict = {}  # 클라이언트 ID를 키로 하여 튜플 안에 닉네임과 게임방 이름을 저장하는 딕셔너리.
 room_dict = {}  # 게임방 이름을 키로 하여 리스트 안에 게임방 스레드를 저장하는 딕셔너리.
 
 # server에 저장 - 과제 리스트
@@ -179,21 +177,37 @@ class RoomThread(Thread):
         self.member_thread = []
         self.status = 0  # 0: before start, 1: started, 2: finished
         self.player_list=[]
+        self.member_is_ready = {}
+        self.status = 0  # 0: before start, 1: started, 2: finished
 
     def add_client(self, client_thread):
         self.member_thread.append(client_thread)
+        self.member_is_ready.setdefault(client_thread.nickname, False)
+        if self.member_thread.__len__() == 1:
+            client_thread.send(bytes("$giveHead", 'utf-8'))
+        self.chat_members_list()
 
     def del_client(self, client_thread):
         if self.member_thread.index(client_thread) == 0:
             if self.member_thread.__len__() == 1:
+                room_dict.pop(self.room_name)
                 self.status = 2
             else:
                 self.member_thread[1].send(bytes("$giveHead", 'utf-8'))
+        self.member_is_ready.pop(client_thread.nickname)
         self.member_thread.remove(client_thread)
+        self.chat_members_list()
+
+    def chat_members_list(self):
+        members_nickname_list = []
+        for thread in self.member_thread:
+            members_nickname_list.append((thread.nickname, self.member_is_ready[thread.nickname]))
+        time.sleep(0.1)
+        self.chat(bytes("$setMembers " + repr(tuple(members_nickname_list)), 'utf-8'))
 
     def chat(self, data):
         for thread in self.member_thread:
-            thread.client_sock.send(data)
+            thread.send(data)
 
     def game(self):
         self.chat(bytes("$gameStarted", 'utf-8'))
@@ -223,7 +237,7 @@ class RoomThread(Thread):
                 if max_num == i.return_reward():
                     self.chat('1st : ' + i.nickname)
         for thread in self.member_thread:
-            thread.client_sock.send(bytes("Game Over\n", 'utf-8'))
+            thread.client_sock.send(bytes("Game Over", 'utf-8'))
         self.status = 2
         # WIP
 
@@ -243,7 +257,7 @@ class ClientThread(Thread):
         self.client_id = client_id
         self.nickname = ""
         self.room_name = ""
-        self.status = 0  # 0: no problem, 1: quit
+        self.status = 0  # 0: no problem, 1: quit error, 2: quit no error
 
     def alert_connection_error(self):
         print("{}({})의 연결이 비정상적으로 종료되었습니다.".format(self.client_id, self.nickname))
@@ -255,6 +269,12 @@ class ClientThread(Thread):
         except ConnectionError:
             self.alert_connection_error()
             return
+        if not data:
+            self.alert_connection_error()
+            return
+        elif data.decode('utf-8') == "$quit":
+            self.status = 2
+            print("{}({})의 연결이 종료되었습니다.".format(self.client_id, self.nickname))
         return data
 
     def send(self, data):
@@ -267,7 +287,7 @@ class ClientThread(Thread):
         global room_dict
 
         data = self.receive()
-        if self.status == 1:
+        if self.status != 0:
             return
         self.nickname = data.decode('utf-8')
 
@@ -279,28 +299,29 @@ class ClientThread(Thread):
             if room.status == 0:
                 available_room_name.append(room.room_name)
         self.send(bytes(repr(tuple(available_room_name)), 'utf-8'))
-        if self.status == 1:
+        if self.status != 0:
             return
+
+        print("{}({})에게 방 정보를 보냈습니다.".format(self.client_id, self.nickname))
         data = self.receive()
-        if self.status == 1:
+        if self.status != 0:
             return
         self.room_name = data.decode('utf-8')
 
         if self.room_name not in room_dict:
             room_dict.setdefault(self.room_name, RoomThread(self.room_name))
             room_dict[self.room_name].start()
-            self.send(bytes("$giveHead", 'utf-8'))
         room_dict[self.room_name].add_client(self)
 
     def run(self):
         global room_dict
 
         self.select_nickname()
-        if self.status == 1:
+        if self.status != 0:
             return
         while True:
             self.select_room()
-            if self.status == 1:
+            if self.status != 0:
                 return
             my_room = room_dict[self.room_name]
             temp = 0
@@ -308,10 +329,17 @@ class ClientThread(Thread):
                 if my_room.status == 1:
                     break
                 data = self.receive()
+                if self.status != 0:
+                    my_room.del_client(self)
+                    return
                 if data.decode('utf-8') == "$gameStart":
                     my_room.game()
+                elif data.decode('utf-8') == "$ready":
+                    my_room.member_is_ready[self.nickname] = not my_room.member_is_ready[self.nickname]
+                    my_room.chat_members_list()
                 elif data.decode('utf-8') == "$leave":
                     my_room.del_client(self)
+                    self.send(bytes("$tmp", 'utf-8'))
                     temp = 1
                     break
                 else:
