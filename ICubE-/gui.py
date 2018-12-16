@@ -23,6 +23,7 @@ GREEN = (0, 200, 0)
 
 class BaseGui:
     def __init__(self):
+        pg.display.init()
         pg.display.set_caption('상!평!')
         self.screen = None
 
@@ -230,6 +231,7 @@ class RoomGui(BaseGui):
         self.client_nickname = client_nickname
         self.members = list(members)
         self.is_head = False
+        self.can_start = False
         self.chat = []
 
         self.screen = pg.display.set_mode((self.width, self.height))
@@ -242,7 +244,7 @@ class RoomGui(BaseGui):
         self.screen.fill(WHITE)
         pg.draw.rect(self.screen, BLACK, ((0, 0), (self.width, self.height/8)), 0)
         pg.draw.rect(self.screen, LIGHT_GRAY, ((self.width*11/16, self.height/8), (self.width*5/16, self.height*3/4)), 0)
-        pg.draw.rect(self.screen, GREEN, self.game_button, 0)
+        pg.draw.rect(self.screen, LIGHT_GRAY if self.is_head and not self.can_start else GREEN, self.game_button, 0)
         pg.draw.rect(self.screen, RED, self.leave_button, 0)
 
         pg.draw.line(self.screen, BLACK, (0, self.height/8), (self.width, self.height/8), 2)
@@ -261,8 +263,37 @@ class RoomGui(BaseGui):
         chat_arrow = self.make_text(">", self.font, self.font_size, BLACK, (self.font_size, self.height-self.font_size), 1, 1)
         self.screen.blit(chat_arrow[0], chat_arrow[1])
 
+    def make_member_list(self, member_list, font, font_size, top, coord_x, h_align):
+        text_box_list, text_box_rect_list = [], []
+        cnt = 0
+        for member in member_list:
+            text, color = member[0], GREEN if member[1] else RED
+            if member == member_list[0]:
+                color = BLACK
+            if h_align == 0:
+                tb, tbr = self.make_text(text, font, font_size, color, (coord_x, top+font_size*cnt*1.6), 0, 0)
+            elif h_align == 1:
+                tb, tbr = self.make_text(text, font, font_size, color, (coord_x, top+font_size*cnt*1.6), 1, 0)
+            elif h_align == 2:
+                tb, tbr = self.make_text(text, font, font_size, color, (coord_x, top+font_size*cnt*1.6), 2, 0)
+            else:
+                raise RuntimeError("'h_align' should be one of 0, 1, 2.") from Exception
+            cnt += 1
+            text_box_list.append(tb)
+            text_box_rect_list.append(tbr)
+        return text_box_list, text_box_rect_list
+
     def set_members(self, members):
         self.members = members
+        if self.members.__len__() == 1:
+            self.can_start = False
+        else:
+            flag = True
+            for i in self.members[1:]:
+                if not i[1]:
+                    flag = False
+                    break
+            self.can_start = flag
 
     def set_head(self):
         self.is_head = True
@@ -285,7 +316,10 @@ class RoomGui(BaseGui):
             elif event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
                     if self.game_button.collidepoint(event.pos[0], event.pos[1]):
-                        com = "$gameStart" if self.is_head else "$ready"
+                        if self.is_head:
+                            com = "$gameStart" if self.can_start else None
+                        else:
+                            com = "$ready"
                     elif self.leave_button.collidepoint(event.pos[0], event.pos[1]):
                         com = "$leave"
 
@@ -296,7 +330,7 @@ class RoomGui(BaseGui):
         chat_list, chat_rect_list = self.make_text_bunch(self.chat, self.font, self.font_size, BLACK, self.height/8+self.font_size*0.75, self.font_size, 0)
         for i in range(len(chat_list)):
             self.screen.blit(chat_list[i], chat_rect_list[i])
-        member_list, member_rect_list = self.make_text_bunch(self.members, self.font, self.font_size, BLACK, self.height/8+self.font_size*2, self.width*11/16+self.font_size, 0)
+        member_list, member_rect_list = self.make_member_list(self.members, self.font, self.font_size, self.height/8+self.font_size*2, self.width*11/16+self.font_size, 0)
         for i in range(len(member_list)):
             self.screen.blit(member_list[i], member_rect_list[i])
 

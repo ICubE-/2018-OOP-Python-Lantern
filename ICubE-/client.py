@@ -10,6 +10,9 @@ status = 0      # 0: before game start, 1: error, 2: game started, 3: end
 
 def alert_connection_error():
     global status
+
+    if status == 1:
+        return
     gui.AlertConnectionErrorGui().show()
     status = 1
 
@@ -64,6 +67,10 @@ def receive(room):
             return
         if data.decode('utf-8') == "$gameStarted":
             status = 2
+        elif data.decode('utf-8') == "$giveHead":
+            room.set_head()
+        elif data.decode('utf-8').split()[0] == "$setMembers":
+            room.set_members(eval(' '.join(data.decode('utf-8').split()[1:])))
         else:
             room.add_chat(data.decode('utf-8'))
 
@@ -110,7 +117,11 @@ def connect():
         r = threading.Thread(target=receive, args=(room, ))
         r.start()
         while status == 0:
-            msg, com = room.show()
+            tmp = room.show()
+            if not tmp:
+                status = 1
+                return
+            msg, com = tmp
             if msg:
                 try:
                     my_socket.send(bytes(msg, 'utf-8'))
