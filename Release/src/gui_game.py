@@ -2,7 +2,7 @@
 # -pip3 install pygame
 # -pip3 install heconvert
 import pygame
-import pygame_textinput
+from src import pygame_textinput
 from time import *
 
 pygame.init()
@@ -24,13 +24,13 @@ names={'KYPT' : ['대회 활동', 30],
        '동아리 발표 대회' : ['대회 활동', 20],
        '융합@수학 산출물' : ['연구 활동', 20],
        '삼성휴먼테크논문쓰기' : ['연구 활동', 20],
-       '객지프로젝트' : ['연구 활동', 20],
-       '도시환경과 도시계획연구' : ['연구 활동', 20],
-       '논리적글쓰기 인문학 보고서' : ['연구 활동', 20],
+       '객체지향프로그래밍 프로젝트' : ['연구 활동', 20],
+       '도시환경과 도시계획 연구' : ['연구 활동', 20],
+       '논리적글쓰기 인문학보고서' : ['연구 활동', 20],
        '공학개론 의자 만들기' : ['조별 과제', 20],
        '사회문제와인문학적상상력 발표' : ['조별 과제', 20],
-       '고급물리 교류발전기 만들기' : ['조별 과제', 20],
-       '공학개론 다리 만들기' : ['조별 과제', 20],
+       '고급물리 교류 발전기 만들기' : ['조별 과제', 20],
+       '스파게티 다리 만들기' : ['조별 과제', 20],
        '창작 시 콘서트' : ['조별 과제', 20]
        }
 tempstatus=[1,1,0,0,0,0,1,0,1,0,1,1,1,1,1,1]
@@ -83,11 +83,10 @@ def settings(Win_Width=win_width, Win_Height=win_height, Ratio_Chatroom=ratio_ch
 class stage():
 
     def __init__(self, RoundName):
-        global names, round_name
-        round_name=RoundName
-        pygame.display.set_caption('상!평!')
+        global names
+        self.round_name=RoundName
         try:
-            self.stage_name=names[round_name][0]
+            self.stage_name=names[self.round_name][0]
         except:
             print('배열안의 이름이랑 넣은 이름이랑 안맞는듯')
 
@@ -118,7 +117,7 @@ class stage():
     def Stage_Title(self):
         try:
             pygame.draw.rect(screen, BLUE[1], (0, 0, win_width*ratio_chatroom, win_height*ratio_title))
-            stage_title_fontObj = pygame.font.Font('..\\resources\\font\\NanumSquareRoundEB.ttf', 40)
+            stage_title_fontObj = pygame.font.Font('resources\\font\\NanumSquareRoundEB.ttf', 40)
             text_stage = stage_title_fontObj.render('STAGE : '+self.stage_name, True, (255,255,255))
             text_stage_rectObj = text_stage.get_rect()
             text_stage_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_title/2+2)
@@ -143,7 +142,7 @@ def chatting_input(sometext=''):
 
     t=0
     for c in chatting_t:
-        chat_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic.ttf', 15)
+        chat_fontobj = pygame.font.Font('resources\\font\\NanumGothic.ttf', 15)
         chat = chat_fontobj.render(c, True, BLACK)
         chat_rectObj = chat.get_rect()
         chat_rectObj.center = (25+chat.get_width()/2, win_height*ratio_monster+15+chat.get_height()/2+t)
@@ -157,9 +156,9 @@ class my_status():
     def __init__(self, stonedic, cardlist):
         self.stonedic = list(stonedic.values())
         self.cardlist = cardlist
-        self.stone1=pygame.image.load('..\\resources\\images\\{}.png'.format('자유로운 공강'))
-        self.stone2=pygame.image.load('..\\resources\\images\\{}.png'.format('편안한 숙면'))
-        self.stone3=pygame.image.load('..\\resources\\images\\{}.png'.format('행복한 취미생활'))
+        self.stone1=pygame.image.load('resources\\images\\{}.png'.format('자유로운 공강'))
+        self.stone2=pygame.image.load('resources\\images\\{}.png'.format('편안한 숙면'))
+        self.stone3=pygame.image.load('resources\\images\\{}.png'.format('행복한 취미생활'))
         self.vx=[]
         self.vy=[]
         self.card=[]
@@ -167,7 +166,7 @@ class my_status():
         self.somesum=0
         for i in range(4): self.vx.append(self.tx(i+1))
         for i in range(2): self.vy.append(self.ty(i))
-        for i in range(8): self.card.append(pygame.image.load('..\\resources\\images\\{}.png'.format(i+1)))
+        for i in range(8): self.card.append(pygame.image.load('resources\\images\\{}.png'.format(i+1)))
 
         self.show_block()
 
@@ -182,7 +181,7 @@ class my_status():
         screen.blit(self.stone2, (self.vx[0]-26, win_height*(13/24+1/12)-10))
         screen.blit(self.stone3, (self.vx[0]-26, win_height*(13/24+1/6)-10))
         for i in range(len(self.stonedic)):
-            stone_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic-ExtraBold.ttf', 40)
+            stone_fontobj = pygame.font.Font('resources\\font\\NanumGothic-ExtraBold.ttf', 40)
             stone = stone_fontobj.render('{}'.format(self.stonedic[i]), True, BLACK)
             stone_rectObj = stone.get_rect()
             stone_rectObj.center = (self.vx[0]+self.stone1.get_rect().size[0]+10, stone.get_rect().size[1]/2+win_height*(13/24+i/12)-10)
@@ -212,11 +211,11 @@ class who_let_the_stones_out():
         for i in range((self.num-1)//5+1): vy.append(self.ty(i))
         for i in range(self.num):
             if self.somelist[i]:
-                s=pygame.image.load('..\\resources\\images\\{}.png'.format('green'))
+                s=pygame.image.load('resources\\images\\{}.png'.format('green'))
                 screen.blit(s, (vx[i%5]-20, vy[i//5]-30))
                 self.somesum+=self.somelist[i]
             else:
-                s=pygame.image.load('..\\resources\\images\\{}.png'.format('red'))
+                s=pygame.image.load('resources\\images\\{}.png'.format('red'))
                 screen.blit(s, (vx[i%5]-20, vy[i//5]-30))
                 self.someflag=False
         if self.someflag:
@@ -237,10 +236,10 @@ class monster():
         self.tempflag=True
         self.cnt=0
         try:
-            self.Img = pygame.image.load('..\\resources\\images\\{}.png'.format(self.roundname))
+            self.Img = pygame.image.load('resources\\images\\{}.png'.format(self.roundname))
             self.x = win_width*ratio_chatroom/2-self.Img.get_rect().size[0]/2
             self.y = (win_height*(ratio_monster)-self.Img.get_rect().size[1])/2 
-            name_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 25)
+            name_fontobj = pygame.font.Font('resources\\font\\NanumBarunGothicWeb.ttf', 25)
             self.name = name_fontobj.render(self.roundname, True, BLACK)
         except:
             print('No file!!')
@@ -268,7 +267,7 @@ class monster():
             if self.tempflag:
                 self.tempflag=False
                 try:
-                    pygame.mixer.music.load("..\\resources\\music\\soundeffect\\{}.mp3".format('punch'))
+                    pygame.mixer.music.load("resources\\music\\soundeffect\\{}.mp3".format('punch'))
                     pygame.mixer.music.play(0)
                     sleep(0.2)
                 except:
@@ -277,7 +276,7 @@ class monster():
 
             self.x+=resulting[self.cnt]
             screen.blit(self.Img, (self.x, self.y))
-            dg_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic-ExtraBold.ttf', 60)
+            dg_fontobj = pygame.font.Font('resources\\font\\NanumGothic-ExtraBold.ttf', 60)
             dg = dg_fontobj.render('{}'.format(Damage), True, RED)
             dg_rectObj = dg.get_rect()
             dg_rectObj.center = (self.x+self.Img.get_rect().size[0]/2, self.y)
@@ -288,14 +287,14 @@ class monster():
             currentHP=max(self.hp-Damage, 0)
             pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*self.hp/2,win_height*ratio_monster-65-self.name.get_height()/2,10*self.hp, 32), 1)
             pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*self.hp/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(self.hp) * (10*self.hp-2), 10*self.hp-2), 0)), 30), 0)
-            HP_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 20)
+            HP_fontobj = pygame.font.Font('resources\\font\\NanumBarunGothicWeb.ttf', 20)
             HP = HP_fontobj.render('{}/{}'.format(currentHP, self.hp), True, BLACK)
             HP_rectObj = HP.get_rect()
             HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
             screen.blit(HP, HP_rectObj)
             
             if self.cnt==len(resulting):
-                pygame.mixer.music.load("..\\resources\\music\\bgm\\{}.mp3".format('result'))
+                pygame.mixer.music.load("resources\\music\\bgm\\{}.mp3".format('result'))
                 pygame.mixer.music.play(-1)
                 self.rs=result(currentHP)
 
@@ -307,7 +306,7 @@ class monster():
 
     def bgm(self):
         try:
-            pygame.mixer.music.load("..\\resources\\music\\bgm\\{}.mp3".format(self.roundname))
+            pygame.mixer.music.load("resources\\music\\bgm\\{}.mp3".format(self.roundname))
             pygame.mixer.music.play(-1,0.0)
         except:
             print("No file!!")
@@ -323,7 +322,7 @@ class monster():
         currentHP=self.hp
         pygame.draw.rect(screen, BLACK, (win_width*ratio_chatroom/2-10*self.hp/2,win_height*ratio_monster-65-self.name.get_height()/2,10*self.hp, 32), 1)
         pygame.draw.rect(screen, GREEN, (win_width*ratio_chatroom/2-10*self.hp/2+1,win_height*ratio_monster-65-self.name.get_height()/2+1,int(max(min(currentHP / float(self.hp) * (10*self.hp-2), 10*self.hp-2), 0)), 30), 0)
-        HP_fontobj = pygame.font.Font('..\\resources\\font\\NanumBarunGothicWeb.ttf', 20)
+        HP_fontobj = pygame.font.Font('resources\\font\\NanumBarunGothicWeb.ttf', 20)
         HP = HP_fontobj.render('{}/{}'.format(currentHP, self.hp), True, BLACK)
         HP_rectObj = HP.get_rect()
         HP_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster-52-HP.get_height()/2)
@@ -341,14 +340,14 @@ class result():
             self.Success()
 
     def Success(self):
-        sc_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
+        sc_fontobj = pygame.font.Font('resources\\font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
         sc = sc_fontobj.render('SUCCESS', True, BLUE[1])
         sc_rectObj = sc.get_rect()
         sc_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
         screen.blit(sc, sc_rectObj)
 
     def Fail(self):
-        fail_fontobj = pygame.font.Font('..\\resources\\font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
+        fail_fontobj = pygame.font.Font('resources\\font\\NanumGothic-ExtraBold.ttf', int(win_height/4))
         fail = fail_fontobj.render('FAIL', True, BLUE[1])
         fail_rectObj = fail.get_rect()
         fail_rectObj.center = (win_width*ratio_chatroom/2, win_height*ratio_monster/2)
@@ -358,81 +357,73 @@ class result():
 
     pass
 
-class running():
+
+class Game:
     def __init__(self):
+        pygame.display.set_caption('상!평!')
+        self.mon = monster('KYPT', 100)
+        self.base = stage('KYPT')
+        self.textinput = pygame_textinput.TextInput()
+        self.damage = None
+        self.btn = [1, 1, 1, 1, 1, 1, 1, 1]
+        self.btn_show = False
+
         pygame.init()
         pygame.display.init()
-        self.run=True
-        self.textinput = pygame_textinput.TextInput()
-        self.system('$input', ('KYPT', 10000))#임시적인 input
-        self.activate()
+        global screen
+        screen = pygame.display.set_mode((win_width, win_height))
 
-    def system(self, instructions, info):
-        global round_name, tempstatus, resultflag
-        if instructions=='$input':
-            while True:
-                try:
-                    print(info)
-                    round_name = info[0]
-                    names[round_name][1] = int(info[1])
-                    #초기화
-                    self.mon=monster()
-                    self.test=stage()
-                    resultflag=True
-                    tempstatus=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
-                    break
-                except:
-                    print('라운드 이름이 정확하지 않음')
-                    continue
-        if instructions=='$stone':
-            tempstatus=[1,2,1,6,1,1,1,1,2,1,1,1,1,1,2,1]#임시
-        return
+    def change_mob(self, name, hp):
+        self.base = stage(name)
+        self.mon = monster(name, hp)
 
-    def activate(self):
-        global round_name, tempstatus
-        while self.run:
-            pygame.display.init()
+    def show(self):
+        pygame.time.delay(10)
+        events = pygame.event.get()
+
+        self.base.refill()  # 계속 배경보이기
+        self.mon.refill()  # 계속 몬스터 보이기
+        texts = self.textinput.update(events)  # 화면에 입력된 것들을 문자열로 받음
+        screen.blit(self.textinput.get_surface(), (30, win_height - 32))  # 받은것들을 입력창에 띄움
+
+        chatting_input(texts)  # 받은 TEXT들을 모두 채팅방에 띄운다
+
+        tmp = self.btn if self.btn_show else [0, 0, 0, 0, 0, 0, 0, 0]
+        stat = my_status({'자유로운 공강': 5, '행복한 취미생활': 2, '편안한 숙면': 1}, tmp)  # 보석들과 공격카드 정보를 받으면 화면에 표시
+
+        who_let_the_stones_out([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1])  # 플레이어 공격력들의 리스트가 들어갔을 때 빨강초록 표시
+
+        com = None
+        for event in events:
+            if event.type == pygame.QUIT:
+                break
+            elif event.type == pygame.MOUSEBUTTONUP:
+                # 버튼 누르는것 (stat 선언보다 뒤에 있어야 버튼 눌림)
+                if event.button == 1:
+                    for i in range(8):
+                        if stat.C[i].collidepoint(event.pos[0], event.pos[1]):
+                            com = "$btn"+str(i)
+                            self.btn[i] = 0
+                            self.btn_show = False
+                            print(i + 1)  # button pushed
+
+        pygame.display.update()
+        if self.damage:
             pygame.time.delay(10)
-
             events = pygame.event.get()
-
-            self.test.refill()
-
-            if resultflag:
-                self.st = my_status({'자유로운 공강': 5, '행복한 취미생활': 2, '편안한 숙면': 1}, [1, 1, 1, 1, 1, 1, 1, 1])
-                who_let_the_stones_out(tempstatus)
-                self.mon.refill()
-            else:
-                self.mon.view_result()
-
-            y = self.textinput.update(events)
-            # Blit its surface onto the screen
-            screen.blit(self.textinput.get_surface(), (30, win_height - 32))
-            try:
-                if y[0] == '$':
-                    self.system(y)
-                else:
-                    chatting_input(y)
-            except:
-                chatting_input(y)
-
             for event in events:
                 if event.type == pygame.QUIT:
                     self.run = False
                     break
-                elif event.type == pygame.MOUSEBUTTONUP:
-                    if event.button == 1:
-                        for i in range(8):
-                            if self.st.C[i].collidepoint(event.pos[0], event.pos[1]):
-                                buttonpushed = i
-                                print(i)
 
+            self.base.refill()  # 계속 배경보이기
+            self.mon.view_result(self.damage)  # 몬스터 때리기 (1회용)
             pygame.display.update()
-            pass
-        pygame.quit()
 
-if __name__ == '__main__':
-    running()
+        return texts, com
+
+
+
 
 
 '''

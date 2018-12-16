@@ -87,15 +87,16 @@ def receive_in_game(game):
             alert_connection_error()
             return
         code = data.decode('utf-8')
+        print(code)
         if code.split()[0] == "$monsterInfo":
             info = eval(' '.join(code.split()[1:]))
-            game.system("$input", info)
+            game.change_mob(info[0], int(info[1]))
         elif code == "$getInput":
-            pass
-        elif code == "$Success":
-            pass
-        elif code == "$Failed":
-            pass
+            game.btn_show = True
+        elif code.split()[0] == "$Success" or code.split()[0] == "$Failed":
+            game.damage = code.split()[1]
+        else:
+            game.chatting_input(code)
         print(code)
 
 
@@ -151,19 +152,27 @@ def connect():
         room.quit()
         r.join()
 
+        game = gg.Game()
+        r = threading.Thread(target=receive_in_game, args=(game, ))
+        r.start()
         while status == 2:
-            game = gg.running()
-            r = threading.Thread(target=receive_in_game, args=(game, ))
-            c = threading.Thread(target=send, args=())
-            r.start()
-            c.start()
+            msg, com = game.show()
+            if msg:
+                try:
+                    my_socket.send(bytes(msg, 'utf-8'))
+                except ConnectionError:
+                    alert_connection_error()
+                    return
+            if com:
+                try:
+                    my_socket.send(bytes(com, 'utf-8'))
+                except ConnectionError:
+                    alert_connection_error()
+                    return
 
-
-
-            r.join()
-            c.join()
             if status == 1:
                 return
+        r.join()
 
 
 server_address = (server_ip, server_port)
