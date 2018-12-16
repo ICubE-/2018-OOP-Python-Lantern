@@ -400,7 +400,7 @@ class running():
         
 
             if resultflag:
-                self.st = my_status({'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}, [1,1,1,1,1,1,1,1])
+                self.st = my_status({'자유로운 공강': 5, '행복한 취미생활': 2, '편안한 숙면': 1}, [1,1,1,1,1,1,1,1])
                 who_let_the_stones_out(tempstatus)
                 self.mon.refill()
             else:

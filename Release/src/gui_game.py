@@ -360,7 +360,7 @@ class running():
     def __init__(self):
         self.run=True
         self.textinput = pygame_textinput.TextInput()
-        self.system('$input')
+        self.system('$input')#임시적인 input
         self.activate()
 
     def system(self, instructions):
@@ -368,7 +368,7 @@ class running():
         if instructions=='$input':
             while True:
                 try:
-                    round_name=input()
+                    round_name=input()#임시적인 input
                     names[round_name]
 
                     #초기화
@@ -381,7 +381,7 @@ class running():
                     print('라운드 이름이 정확하지 않음')
                     continue
         if instructions=='$stone':
-            tempstatus=[1,2,1,6,1,1,1,1,2,1,1,1,1,1,2,1]
+            tempstatus=[1,2,1,6,1,1,1,1,2,1,1,1,1,1,2,1]#임시
         return
 
     def activate(self):
@@ -400,7 +400,7 @@ class running():
         
 
             if resultflag:
-                my_status({1 : 1, 2 : 2, 3 : 3}, [1,1,1,1,1,1,1,1])
+                my_status({1 : 1, 2 : 2, 3 : 3}, [1,1,1,1,1,1,1,1])#임시적인 input
                 who_let_the_stones_out(tempstatus)
                 self.mon.refill()
             else:
