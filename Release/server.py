@@ -75,47 +75,47 @@ def run_game(round_num, task_stage, player_list):
             input_list.append(r.join())
 
         input_list_new = copy.copy(input_list)
-        for i in input_list:
-            chk=False
-            for j in input_list:
-                if i[0] == j[0] and i[1] != j[1]:
-                    input_list.remove(j)
+        for a in input_list:
+            chk = False
+            for b in input_list:
+                if a[0] == b[0] and a[1] != b[1]:
+                    input_list.remove(b)
                     chk=True
             if chk:
                 input_list.remove(i)
 
         tot = 0
-        for i in input_list:
-            tot = tot + i[0]
+        for input_val in input_list:
+            tot = tot + input_val[0]
 
         if task_now.hp <= tot:
             for play in player_list:
                 play.player_thread.send(bytes("$Success\n", 'utf-8'))
-            for i in range(3):
-                min = 99999
+            for number in range(3):
+                min_val = 99999
                 for j in input_list:
-                    if j[0] < min:
-                        min = j[0]
+                    if j[0] < min_val:
+                        min_val = j[0]
                 for j in input_list:
-                    if j[0] == min:
+                    if j[0] == min_val:
                         j[1].get_reward(task_now.reward[i])
                         input_list.remove(j)
 
         else:
             for play in player_list:
                 play.player_thread.send(bytes("$Failed\n", 'utf-8')) # client에서 출력
-            min = 99999
-            for i in input_list_new:
-                if i[0] < min:
-                    min = i[0]
-            for i in input_list_new:
-                if i[0] == min:
-                    i[1].take_time()
+            min_val = 99999
+            for k in input_list_new:
+                if k[0] < min_val:
+                    min_val = k[0]
+            for k in input_list_new:
+                if k[0] == min_val:
+                    k[1].take_time()
 
         print_status(player_list)
 
 
-class player():
+class Player():
     def __init__(self, player_thread):
         self.nickname = player_thread.nickname
         self.card_list = [1, 1, 1, 1, 1, 1, 1, 1]
@@ -124,7 +124,7 @@ class player():
 
     def put_card(self, card_num):
         if self.card_list[card_num-1]:
-            self.card_list[card_num-1]=0
+            self.card_list[card_num-1] = 0
             return True
         else:
             self.player_thread.send(bytes("Choose From What You Have", 'utf-8'))
@@ -147,11 +147,11 @@ class player():
         self.reward_dict = {'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}
 
     def return_reward(self):
-        sum = self.reward_dict['자유로운 공강'] + self.reward_dict['행복한 취미생활'] + self.reward_dict['편안한 숙면']
-        return sum
+        sum_reward = self.reward_dict['자유로운 공강'] + self.reward_dict['행복한 취미생활'] + self.reward_dict['편안한 숙면']
+        return sum_reward
 
 
-class time_monster():
+class TimeMonster():
     def __init__(self, name, reward, hp):
         self.name = name
         self.reward = reward
@@ -166,7 +166,7 @@ class RoomThread(Thread):
         self.room_name = room_name
         self.member_thread = []
         self.status = 0  # 0: before start, 1: started, 2: finished
-        self.player_list=[]
+        self.player_list = []
         self.member_is_ready = {}
         self.status = 0  # 0: before start, 1: started, 2: finished
 
@@ -206,26 +206,26 @@ class RoomThread(Thread):
             tmp = []
             key = random.randint(1, 5)
             for j in range(5):
-                tmp.append(time_monster(task_name_all[i][j], reward_list[(key + j) % 5],
+                tmp.append(TimeMonster(task_name_all[i][j], reward_list[(key + j) % 5],
                                         int(hp_list[(key + j) % 5] * len(self.member_thread) / 5)))
             task_list[task_header[i]] = tmp
         for i in self.member_thread:
-            self.player_list.append(player(i))
+            self.player_list.append(Player(i))
         for j in self.player_list:
             j.init_reward()
         for i in range(STAGE_NUM):
             task_tmp = copy.deepcopy(task_list)
-            self.chat(bytes("$StageNow : "+'\n', 'utf-8'))
+            self.chat(bytes("$StageNow : "+task_tmp[task_header[i]], 'utf-8'))
             run_game(ROUND_NUM, task_tmp[task_header[i]], self.player_list)
             for j in self.player_list:
                 j.init_time()
             max_num = 0
-            for i in self.player_list:
-                if max_num < i.return_reward():
-                    max_num = i.return_reward()
-            for i in self.player_list:
-                if max_num == i.return_reward():
-                    self.chat('1st : ' + i.nickname)
+            for k in self.player_list:
+                if max_num < k.return_reward():
+                    max_num = k.return_reward()
+            for k in self.player_list:
+                if max_num == k.return_reward():
+                    self.chat('1st : ' + k.nickname)
         for thread in self.member_thread:
             thread.client_sock.send(bytes("Game Over", 'utf-8'))
         self.status = 2
