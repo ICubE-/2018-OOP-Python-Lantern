@@ -51,9 +51,9 @@ class InputThread(Thread):
 
 def print_status(player_list):  # 전부 client에서 출력
     for j in player_list:
-        print(j.nickname)
-        print(j.card_list)
-        print(j.reward_dict)
+        j.player_thread.send(bytes(j.nickname))
+        j.player_thread.send(bytes(repr(j.card_list)))
+        j.player_thread.send(bytes(repr(j.reward_dict)))
 
 
 def run_game(round_num, task_stage, player_list):
@@ -73,7 +73,11 @@ def run_game(round_num, task_stage, player_list):
             q.start()
         for r in InputThread_list:
             input_list.append(r.join())
-
+        input_list_only_num = []
+        for i in input_list:
+            input_list_only_num.append(input_list[0])
+        for i in player_list:
+            i.send(bytes(repr(input_list_only_num)))
         input_list_new = copy.copy(input_list)
         for i in input_list:
             chk=False
