@@ -1,7 +1,7 @@
 import pygame as pg
 from src import pygame_textinput
 
-FONT_DIR = '..\\SeeWhy\\font\\NanumSquareRoundEB.ttf'
+FONT_DIR = 'resources\\font\\NanumSquareRoundEB.ttf'
 
 pg.init()
 
@@ -336,12 +336,52 @@ class RoomGui(BaseGui):
         return msg, com
 
 
+class FinalGui(BaseGui):
+    def __init__(self, width=640, height=480, font=FONT_DIR, font_size=20, result=("TEST",)):
+        super().__init__()
+        self.width = width
+        self.height = height
+        self.font = font
+        self.font_size = font_size
+        self.result = result
+
+        self.screen = pg.display.set_mode((self.width, self.height))
+        self.screen.fill(LIGHT_GRAY)
+
+        self.result_text, self.result_rect = self.make_text_bunch(list(result), font, font_size, BLACK, 100, self.width/2, 1)
+        self.btn = pg.Rect((self.width*3/8, 25), (self.width/4, 45))
+        self.btn_text, self.btn_text_rect = self.make_text("나가기", font, font_size, BLACK, (width/2, 50), 1, 1)
+
+        for i in range(len(self.result_rect)):
+            self.screen.blit(self.result_text[i], self.result_rect[i])
+        pg.draw.rect(self.screen, RED, self.btn, 0)
+        pg.draw.rect(self.screen, BLACK, self.btn, 2)
+        self.screen.blit(self.btn_text, self.btn_text_rect)
+
+        pg.display.update()
+
+    def show(self):
+        flag = True
+        while flag:
+            events = pg.event.get()
+            for event in events:
+                if event.type == pg.QUIT:
+                    pg.display.quit()
+                    return
+                elif event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        if self.btn.collidepoint(event.pos[0], event.pos[1]):
+                            flag = False
+            pg.time.delay(TIME_DELAY)
+        pg.display.quit()
+
+
 if __name__ == '__main__':
     # tmp = ChooseNickname()
     # tmp = AlertConnectionError()
     # tmp = ChooseRoomGui()
-    tmp = RoomGui()
+    #tmp = RoomGui()
     # tmp.set_head()
-    tmp.set_members(("A", "asdf", "0055", "응으으으"))
-    while True:
-        tmp.show()
+    #tmp.set_members(("A", "asdf", "0055", "응으으으"))
+    tmp = FinalGui()
+    tmp.show()

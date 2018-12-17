@@ -33,11 +33,13 @@ def get_input(play, pl_list):
         data = play.player_thread.receive().decode('utf-8')
         if data.split()[0] == "$btn":
             data = int(' '.join(data.split()[1:]))
+            #print(data)
             if play.put_card(data):
                 return [data, play]
         else:
             for i in pl_list:
-                i.player_thread.send(bytes(data, 'utf-8'))
+                i.player_thread.send(bytes(play.player_thread.nickname+" : "+data, 'utf-8'))
+            #print(data)
 
 
 
@@ -55,10 +57,12 @@ class InputThread(Thread):
         return self._return
 # source from https://stackoverflow.com/questions/6893968/how-to-get-the-return-value-from-a-thread-in-python
 
+
 def print_status(player_list):  # 전부 client에서 출력
     for j in player_list:
-        j.player_thread.send(bytes(repr(j.card_list)))
-        j.player_thread.send(bytes(repr(j.reward_dict)))
+        j.player_thread.send(bytes("$card "+repr(j.card_list), 'utf-8'))
+        time.sleep(0.1)
+        j.player_thread.send(bytes("$reward "+repr(j.reward_dict), 'utf-8'))
 
 
 def run_game(round_num, task_stage, player_list):
@@ -78,6 +82,7 @@ def run_game(round_num, task_stage, player_list):
             q.start()
         for r in InputThread_list:
             input_list.append(r.join())
+        #print(input_list)
         input_list_only_num = []
         for i in input_list:
             input_list_only_num.append(input_list[0])
@@ -105,7 +110,7 @@ def run_game(round_num, task_stage, player_list):
                         min_val = j[0]
                 for j in input_list:
                     if j[0] == min_val:
-                        j[1].get_reward(task_now.reward[i])
+                        j[1].get_reward(task_now.reward[number])
                         input_list.remove(j)
 
         else:
@@ -118,8 +123,9 @@ def run_game(round_num, task_stage, player_list):
             for k in input_list_new:
                 if k[0] == min_val:
                     k[1].take_time()
-
         print_status(player_list)
+
+        time.sleep(3)
 
 
 class Player():
@@ -148,7 +154,7 @@ class Player():
         self.reward_dict[waste] = 0
 
     def init_time(self):
-        self.card_list = list(range(1, 8))
+        self.card_list = [1, 1, 1, 1, 1, 1, 1, 1]
 
     def init_reward(self):
         self.reward_dict = {'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}
@@ -209,6 +215,8 @@ class RoomThread(Thread):
 
     def game(self):
         self.chat(bytes("$gameStarted", 'utf-8'))
+        self.status = 1
+        time.sleep(0.2)
         # WIP
         for i in range(3):
             tmp = []
@@ -226,21 +234,40 @@ class RoomThread(Thread):
             run_game(ROUND_NUM, task_tmp[task_header[i]], self.player_list)
             for j in self.player_list:
                 j.init_time()
+            print_status(self.player_list)
             max_num = 0
             for k in self.player_list:
                 if max_num < k.return_reward():
                     max_num = k.return_reward()
             for k in self.player_list:
                 if max_num == k.return_reward():
-                    self.chat('1st : ' + k.nickname)
+                    self.chat(bytes('======== 1st : ' + k.nickname+" ========", 'utf-8'))
+            time.sleep(0.1)
         for thread in self.member_thread:
-            thread.client_sock.send(bytes("Game Over", 'utf-8'))
+            thread.client_sock.send(bytes("$gameOver", 'utf-8'))
+        time.sleep(1)
+        # print("nice sleep")
+        grade_list = []
+        for num in range(3):
+            minval = 99999
+            for play in self.player_list:
+                if play.return_reward() < minval:
+                    minval = play.return_reward()
+            for play in self.player_list:
+                if play.return_reward() == minval:
+                    grade_list.append(str(num+1) + ' : ' + play.nickname)
+                    self.player_list.remove(play)
+        # print('calculate over')
+        for thread in self.member_thread:
+            thread.client_sock.send(bytes(repr(grade_list), 'utf-8'))
+        # print('send over')
         self.status = 2
         # WIP
 
     def run(self):
         while self.status != 2:
             pass
+        room_dict.pop(self.room_name)
 
 
 class ClientThread(Thread):
@@ -322,10 +349,12 @@ class ClientThread(Thread):
                 return
             my_room = room_dict[self.room_name]
             temp = 0
-            while True:
+            while my_room.status == 0:
                 if my_room.status == 1:
                     break
                 data = self.receive()
+                if my_room.status == 1:
+                    break
                 if self.status != 0:
                     my_room.del_client(self)
                     return
@@ -339,13 +368,17 @@ class ClientThread(Thread):
                     self.send(bytes("$tmp", 'utf-8'))
                     temp = 1
                     break
+                elif data.decode('utf-8') == "$tmp":
+                    continue
                 else:
                     my_room.chat(bytes(self.nickname + " : ", 'utf-8') + data)
             if temp:
                 continue
-            while True:
-                data = self.receive()
-                my_room.chat(bytes(self.nickname + " : ", 'utf-8') + data)
+            while my_room.status == 1:
+                pass
+
+            time.sleep(0.5)
+            data = self.receive()
 
 
 def connect():

@@ -193,6 +193,8 @@ class my_status():
                 screen.blit(self.card[i], (self.vx[i%4]-self.card[i].get_rect().size[0]/2, self.vy[i//4]))
                 self.C.append(pygame.Rect((self.vx[i % 4] - self.card[i].get_rect().size[0] / 2, self.vy[i // 4]),
                                           (self.card[i].get_rect().size[0], self.card[i].get_rect().size[1])))
+            else:
+                self.C.append(None)
         return
 
 class who_let_the_stones_out():
@@ -360,16 +362,18 @@ class result():
 
 class Game:
     def __init__(self):
+        pygame.init()
+        pygame.display.init()
         pygame.display.set_caption('상!평!')
+
         self.mon = monster('KYPT', 100)
         self.base = stage('KYPT')
         self.textinput = pygame_textinput.TextInput()
-        self.damage = None
+        self.damage = -1
         self.btn = [1, 1, 1, 1, 1, 1, 1, 1]
         self.btn_show = False
+        self.reward = {'자유로운 공강': 1, '행복한 취미생활': 1, '편안한 숙면': 1}
 
-        pygame.init()
-        pygame.display.init()
         global screen
         screen = pygame.display.set_mode((win_width, win_height))
 
@@ -377,50 +381,49 @@ class Game:
         self.base = stage(name)
         self.mon = monster(name, hp)
 
+    def quit(self):
+        pygame.display.quit()
+
     def show(self):
         pygame.time.delay(10)
         events = pygame.event.get()
 
-        self.base.refill()  # 계속 배경보이기
-        self.mon.refill()  # 계속 몬스터 보이기
-        texts = self.textinput.update(events)  # 화면에 입력된 것들을 문자열로 받음
-        screen.blit(self.textinput.get_surface(), (30, win_height - 32))  # 받은것들을 입력창에 띄움
+        if self.damage == -1:
+            self.base.refill()  # 계속 배경보이기
+            self.mon.refill()  # 계속 몬스터 보이기
+            texts = self.textinput.update(events)  # 화면에 입력된 것들을 문자열로 받음
+            screen.blit(self.textinput.get_surface(), (30, win_height - 32))  # 받은것들을 입력창에 띄움
 
-        chatting_input(texts)  # 받은 TEXT들을 모두 채팅방에 띄운다
+            chatting_input()  # 받은 TEXT들을 모두 채팅방에 띄운다
 
-        tmp = self.btn if self.btn_show else [0, 0, 0, 0, 0, 0, 0, 0]
-        stat = my_status({'자유로운 공강': 5, '행복한 취미생활': 2, '편안한 숙면': 1}, tmp)  # 보석들과 공격카드 정보를 받으면 화면에 표시
+            tmp = self.btn if self.btn_show else [0, 0, 0, 0, 0, 0, 0, 0]
+            stat = my_status(self.reward, tmp)  # 보석들과 공격카드 정보를 받으면 화면에 표시
 
-        who_let_the_stones_out([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1])  # 플레이어 공격력들의 리스트가 들어갔을 때 빨강초록 표시
+            #who_let_the_stones_out([0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1])  # 플레이어 공격력들의 리스트가 들어갔을 때 빨강초록 표시
 
-        com = None
-        for event in events:
-            if event.type == pygame.QUIT:
-                break
-            elif event.type == pygame.MOUSEBUTTONUP:
-                # 버튼 누르는것 (stat 선언보다 뒤에 있어야 버튼 눌림)
-                if event.button == 1:
-                    for i in range(8):
-                        if stat.C[i].collidepoint(event.pos[0], event.pos[1]):
-                            com = "$btn"+str(i)
-                            self.btn[i] = 0
-                            self.btn_show = False
-                            print(i + 1)  # button pushed
-
-        pygame.display.update()
-        if self.damage:
+            com = ""
+            for event in events:
+                if event.type == pygame.MOUSEBUTTONUP:
+                    # 버튼 누르는것 (stat 선언보다 뒤에 있어야 버튼 눌림)
+                    if event.button == 1:
+                        for i in range(8):
+                            if stat.C[i] and stat.C[i].collidepoint(event.pos[0], event.pos[1]):
+                                #print(type(stat.C[i]))
+                                com = "$btn "+str(i+1)
+                                self.btn[i] = 0
+                                self.btn_show = False
+                                #print(i + 1)  # button pushed
+            pygame.display.update()
+            return texts, com
+        else:
             pygame.time.delay(10)
             events = pygame.event.get()
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.run = False
-                    break
 
             self.base.refill()  # 계속 배경보이기
             self.mon.view_result(self.damage)  # 몬스터 때리기 (1회용)
             pygame.display.update()
+            return None, None
 
-        return texts, com
 
 
 

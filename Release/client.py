@@ -56,7 +56,7 @@ def select_room():
     return selected_room
 
 
-def receive(room):
+def receive(room, t):
     global my_socket
     global status
 
@@ -70,6 +70,7 @@ def receive(room):
             status = 2
         elif data.decode('utf-8') == "$giveHead":
             room.set_head()
+            t[0] = True
         elif data.decode('utf-8').split()[0] == "$setMembers":
             room.set_members(eval(' '.join(data.decode('utf-8').split()[1:])))
         else:
@@ -87,30 +88,25 @@ def receive_in_game(game):
             alert_connection_error()
             return
         code = data.decode('utf-8')
-        print(code)
         if code.split()[0] == "$monsterInfo":
             info = eval(' '.join(code.split()[1:]))
             game.change_mob(info[0], int(info[1]))
         elif code == "$getInput":
             game.btn_show = True
+            game.damage = -1
         elif code.split()[0] == "$Success" or code.split()[0] == "$Failed":
-            game.damage = code.split()[1]
+            game.damage = int(code.split()[1])
+        elif code.split()[0] == "$card":
+            card_list = eval(' '.join(code.split()[1:]))
+            game.btn = card_list
+        elif code.split()[0] == "$reward":
+            reward_dict = eval(' '.join(code.split()[1:]))
+            game.reward = reward_dict
+        elif code == "$gameOver":
+            status = 3
         else:
             gg.chatting_input(code)
-        print(code)
-
-
-def send():
-    global my_socket
-
-    while status == 0:
-        s = input('> ')
-        print(s)
-        try:
-            my_socket.send(bytes(s, 'utf-8'))
-        except ConnectionError:
-            alert_connection_error()
-            return
+        # print(code)
 
 
 def connect():
@@ -127,7 +123,8 @@ def connect():
             return
 
         room = gui.RoomGui(room_name=room_name, client_nickname=nickname)
-        r = threading.Thread(target=receive, args=(room, ))
+        t = [False]
+        r = threading.Thread(target=receive, args=(room, t, ))
         r.start()
         while status == 0:
             tmp = room.show()
@@ -150,11 +147,15 @@ def connect():
                 if com == "$leave":
                     status = 3
         room.quit()
+        if not t[0]:
+            my_socket.send(bytes("$tmp", 'utf-8'))
         r.join()
+        if status == 3:
+            continue
 
         game = gg.Game()
-        r = threading.Thread(target=receive_in_game, args=(game, ))
-        r.start()
+        rg = threading.Thread(target=receive_in_game, args=(game, ))
+        rg.start()
         while status == 2:
             msg, com = game.show()
             if msg:
@@ -172,7 +173,18 @@ def connect():
 
             if status == 1:
                 return
-        r.join()
+        game.quit()
+        rg.join()
+
+        # print('receive start')
+        try:
+            data = my_socket.recv(1024)
+        except ConnectionError:
+            alert_connection_error()
+            return
+        # print(data)
+        gui.FinalGui(result=eval(data.decode('utf-8'))).show()
+        my_socket.send(bytes("$end", 'utf-8'))
 
 
 server_address = (server_ip, server_port)

@@ -24,7 +24,7 @@ class TextInput:
     def __init__(
             self,
             initial_string="",
-            font_family='..\\resources\\font\\NanumGothic.ttf',
+            font_family='resources\\font\\NanumGothic.ttf',
             font_size=15,
             antialias=True,
             max_text=80,
